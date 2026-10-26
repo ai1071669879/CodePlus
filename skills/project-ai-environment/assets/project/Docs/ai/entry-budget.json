@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "limit": 500,
+  "template_sha256": "a75f58694ab79873d15606e6b98b8b8bb3137faf27610d2bbe229c00933afd62",
+  "token_counts": {
+    "cl100k_base": 336,
+    "o200k_base": 265
+  }
+}

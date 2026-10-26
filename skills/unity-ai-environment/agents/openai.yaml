@@ -1,0 +1,4 @@
+interface:
+  display_name: "Unity 项目 AI 环境管理"
+  short_description: "为 Unity 团队初始化程序、策划、美术规则及权限、导航和环境检查工具"
+  default_prompt: "使用 $unity-ai-environment 为当前 Unity 项目初始化 AI 工作环境，登记真实工程与策划工具并报告验证结果。"

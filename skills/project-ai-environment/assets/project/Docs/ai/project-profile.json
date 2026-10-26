@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "project": {
+    "name": "",
+    "kind": "general",
+    "root": "."
+  },
+  "commands": {
+    "build": [],
+    "test": [],
+    "lint": []
+  },
+  "generated_paths": [],
+  "capabilities": {
+    "secret-scan": {
+      "state": "unconfigured",
+      "skill": "",
+      "source_paths": [],
+      "entrypoints": [],
+      "command": [
+        "gitleaks"
+      ],
+      "input_kinds": [],
+      "outputs": [],
+      "limitations": [],
+      "verified_revision": "",
+      "evidence": [],
+      "integration": {
+        "enabled": false,
+        "provider": "gitleaks",
+        "group": "secret-scanner",
+        "origin": "https://github.com/gitleaks/gitleaks",
+        "version": "",
+        "license": "MIT",
+        "transport": "command",
+        "endpoint": "",
+        "network": [],
+        "environment_variables": [],
+        "probe": [
+          "gitleaks",
+          "version"
+        ],
+        "version_pattern": "",
+        "required": false,
+        "timeout_seconds": 5,
+        "writes": false
+      }
+    },
+    "mcp-inspector": {
+      "state": "unconfigured",
+      "skill": "",
+      "source_paths": [],
+      "entrypoints": [],
+      "command": [
+        "mcp-inspector",
+        "--cli"
+      ],
+      "input_kinds": [],
+      "outputs": [],
+      "limitations": [],
+      "verified_revision": "",
+      "evidence": [],
+      "integration": {
+        "enabled": false,
+        "provider": "mcp-inspector",
+        "group": "",
+        "origin": "https://github.com/modelcontextprotocol/inspector",
+        "version": "",
+        "license": "Apache-2.0/MIT; documentation CC-BY-4.0; verify pinned release",
+        "transport": "command",
+        "endpoint": "",
+        "network": [],
+        "environment_variables": [],
+        "probe": [],
+        "version_pattern": "",
+        "required": false,
+        "timeout_seconds": 5,
+        "writes": false
+      }
+    },
+    "semantic-navigation": {
+      "state": "unconfigured",
+      "skill": "",
+      "source_paths": [],
+      "entrypoints": [],
+      "command": [],
+      "input_kinds": [],
+      "outputs": [],
+      "limitations": [],
+      "verified_revision": "",
+      "evidence": [],
+      "integration": {
+        "enabled": false,
+        "provider": "serena",
+        "group": "semantic-navigation",
+        "origin": "https://github.com/oraios/serena",
+        "version": "",
+        "license": "Application GPL-3.0-or-later; SolidLSP MIT",
+        "transport": "command",
+        "endpoint": "",
+        "network": [],
+        "environment_variables": [],
+        "probe": [],
+        "version_pattern": "",
+        "required": false,
+        "timeout_seconds": 5,
+        "writes": false
+      }
+    },
+    "library-docs": {
+      "state": "unconfigured",
+      "skill": "",
+      "source_paths": [],
+      "entrypoints": [],
+      "command": [],
+      "input_kinds": [],
+      "outputs": [],
+      "limitations": [],
+      "verified_revision": "",
+      "evidence": [],
+      "integration": {
+        "enabled": false,
+        "provider": "context7",
+        "group": "",
+        "origin": "https://github.com/upstash/context7",
+        "version": "",
+        "license": "MIT server; private hosted backend",
+        "transport": "http",
+        "endpoint": "https://mcp.context7.com/mcp",
+        "network": [
+          "mcp.context7.com"
+        ],
+        "environment_variables": [
+          "CONTEXT7_API_KEY"
+        ],
+        "probe": [],
+        "version_pattern": "",
+        "required": false,
+        "timeout_seconds": 5,
+        "writes": false
+      }
+    },
+    "spec-delta": {
+      "state": "unconfigured",
+      "skill": "",
+      "source_paths": [],
+      "entrypoints": [],
+      "command": [
+        "openspec"
+      ],
+      "input_kinds": [],
+      "outputs": [],
+      "limitations": [],
+      "verified_revision": "",
+      "evidence": [],
+      "integration": {
+        "enabled": false,
+        "provider": "openspec",
+        "group": "specification",
+        "origin": "https://github.com/Fission-AI/OpenSpec",
+        "version": "",
+        "license": "MIT",
+        "transport": "command",
+        "endpoint": "",
+        "network": [],
+        "environment_variables": [],
+        "probe": [
+          "openspec",
+          "--version"
+        ],
+        "version_pattern": "",
+        "required": false,
+        "timeout_seconds": 5,
+        "writes": true
+      }
+    }
+  },
+  "verification": {
+    "runtime_load": "not_tested",
+    "server_enforcement": "not_configured"
+  },
+  "conventions": {
+    "commit_language": ""
+  },
+  "change_controls": []
+}

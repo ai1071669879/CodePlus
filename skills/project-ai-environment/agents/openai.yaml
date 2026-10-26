@@ -1,0 +1,4 @@
+interface:
+  display_name: "通用项目 AI 环境管理"
+  short_description: "为任意项目初始化团队规则、身份权限、导航、任务追踪与环境检查工具"
+  default_prompt: "使用 $project-ai-environment 为当前项目盘点并初始化可维护的 AI 工作环境，保留现有规则并报告验证结果。"

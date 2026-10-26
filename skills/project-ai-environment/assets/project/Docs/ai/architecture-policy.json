@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "modules": [],
+  "allowed_dependencies": [],
+  "forbidden_dependencies": [],
+  "allow_cycles": false
+}

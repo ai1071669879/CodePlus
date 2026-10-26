@@ -1,0 +1,3 @@
+# public type baseline, one name per line; regenerate with contract_check.py baseline
+# generated from the working tree: do not hand-edit names into existence
+

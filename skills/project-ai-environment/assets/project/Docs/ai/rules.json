@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "sources": {
+    "identity": "docs/ai/project-rules.md",
+    "principles": "docs/ai/project-rules.md",
+    "intent": "docs/ai/project-rules.md",
+    "execution": "docs/ai/project-rules.md",
+    "grading": "docs/ai/project-rules.md",
+    "scope": "docs/ai/project-rules.md",
+    "generated": "docs/ai/project-rules.md",
+    "commit": "docs/ai/project-rules.md",
+    "tracking": "docs/ai/project-rules.md",
+    "verification": "docs/ai/project-rules.md",
+    "tooling": "docs/ai/tool-integrations.md",
+    "quality": "docs/ai/quality-workflows.md",
+    "adaptation": "docs/ai/project-adaptation.md"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "mode": "audit",
+  "roles": {
+    "maintainer": {
+      "paths": [],
+      "elevated_paths": [],
+      "denied_paths": [],
+      "governance": true
+    },
+    "developer": {
+      "paths": [],
+      "elevated_paths": [],
+      "denied_paths": [],
+      "governance": false
+    },
+    "reviewer": {
+      "paths": [],
+      "elevated_paths": [],
+      "denied_paths": [],
+      "governance": false
+    }
+  },
+  "users": {},
+  "governance_paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "Docs/ai/",
+    "tools/ai/",
+    ".ai-environment.json",
+    ".cursor/rules/",
+    ".trae/rules/",
+    ".workbuddy/rules/",
+    ".codex/",
+    ".claude/",
+    ".agents/",
+    ".gitlab-ci.yml",
+    ".github/workflows/"
+  ],
+  "critical_paths": [],
+  "code_extensions": [],
+  "owned_paths": []
+}

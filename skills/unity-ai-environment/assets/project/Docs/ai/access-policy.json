@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "mode": "audit",
+  "roles": {
+    "maintainer": {
+      "paths": [],
+      "elevated_paths": [],
+      "denied_paths": [],
+      "governance": true
+    },
+    "developer": {
+      "paths": [],
+      "elevated_paths": [],
+      "denied_paths": [],
+      "governance": false
+    },
+    "framework_developer": {
+      "paths": [],
+      "elevated_paths": [],
+      "denied_paths": [],
+      "governance": false
+    },
+    "planner": {
+      "paths": [],
+      "elevated_paths": [],
+      "denied_paths": [],
+      "governance": false,
+      "denied_extensions": [
+        ".cs",
+        ".asmdef",
+        ".asmref",
+        ".shader",
+        ".compute",
+        ".hlsl",
+        ".cginc",
+        ".dll",
+        ".so",
+        ".aar",
+        ".jar",
+        ".lua",
+        ".py",
+        ".sh",
+        ".bat",
+        ".ps1"
+      ],
+      "generated_extensions": [
+        ".cs"
+      ]
+    },
+    "artist": {
+      "paths": [],
+      "elevated_paths": [],
+      "denied_paths": [],
+      "governance": false,
+      "denied_extensions": [
+        ".cs",
+        ".asmdef",
+        ".asmref",
+        ".shader",
+        ".compute",
+        ".hlsl",
+        ".cginc",
+        ".dll",
+        ".so",
+        ".aar",
+        ".jar",
+        ".lua",
+        ".py",
+        ".sh",
+        ".bat",
+        ".ps1"
+      ]
+    },
+    "technical_artist": {
+      "paths": [],
+      "elevated_paths": [],
+      "denied_paths": [],
+      "governance": false,
+      "code_paths": [],
+      "denied_extensions": [
+        ".asmdef",
+        ".asmref",
+        ".dll",
+        ".so",
+        ".aar",
+        ".jar",
+        ".lua",
+        ".py",
+        ".sh",
+        ".bat",
+        ".ps1"
+      ]
+    },
+    "reviewer": {
+      "paths": [],
+      "elevated_paths": [],
+      "denied_paths": [],
+      "governance": false
+    }
+  },
+  "users": {},
+  "governance_paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "Docs/ai/",
+    "tools/ai/",
+    ".ai-environment.json",
+    ".cursor/rules/",
+    ".trae/rules/",
+    ".workbuddy/rules/",
+    ".codex/",
+    ".claude/",
+    ".agents/",
+    ".gitlab-ci.yml",
+    ".github/workflows/"
+  ],
+  "critical_paths": [
+    "*.asmdef",
+    "**/*.asmdef",
+    "*.asmref",
+    "**/*.asmref",
+    "Packages/manifest.json",
+    "**/Packages/manifest.json",
+    "Packages/packages-lock.json",
+    "**/Packages/packages-lock.json",
+    "ProjectSettings/*",
+    "**/ProjectSettings/*"
+  ],
+  "code_extensions": [
+    ".cs"
+  ],
+  "owned_paths": []
+}

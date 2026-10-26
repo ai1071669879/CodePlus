@@ -1,0 +1,25 @@
+# 备份与缓存
+*.bak-*
+backups/
+.codex-backups/
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# 分析中间产物（脚本输出到 ~/，这里只兜底）
+codex_events_*.jsonl
+codex_reports_*.jsonl
+codex_metrics_*.json
+codex_meta.json
+codex_threads_index.json
+codex_*_out.txt
+
+# IDE / 机器特定 / 敏感
+.idea/
+.vs/
+config.toml
+auth.json
+sessions/
+logs_*.sqlite*
+state_*.sqlite*
+thread_history_*.sqlite*

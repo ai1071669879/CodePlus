@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="CodePlus logo: a prompt symbol with a red plus">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b2230"/>
+      <stop offset="1" stop-color="#0d1117"/>
+    </linearGradient>
+    <linearGradient id="prompt" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a5d6ff"/>
+      <stop offset="1" stop-color="#388bfd"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="52" fill="url(#bg)"/>
+  <rect x="8" y="8" width="240" height="240" rx="52" fill="none" stroke="#30363d" stroke-width="4"/>
+  <rect x="14" y="14" width="228" height="228" rx="46" fill="none" stroke="#58a6ff" stroke-opacity="0.18" stroke-width="2"/>
+  <text x="118" y="170" text-anchor="middle"
+        font-family="Consolas, 'Cascadia Code', Menlo, monospace"
+        font-size="104" font-weight="700" letter-spacing="1" fill="url(#prompt)">&gt;_</text>
+  <text x="196" y="94" text-anchor="middle"
+        font-family="Consolas, 'Cascadia Code', Menlo, monospace"
+        font-size="78" font-weight="900" fill="#f85149"
+        stroke="#0d1117" stroke-width="7" paint-order="stroke">+</text>
+</svg>
