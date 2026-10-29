@@ -52,12 +52,15 @@ if ($syncExit -ne 0) { $failures.Add("sync-guide exit=$syncExit（live 配置缺
 if (-not $SkipCodex) {
     Write-Host ''
     Write-Host '=== 2/3 快照 live -> codex/ ===' -ForegroundColor Cyan
+    $agent_files = @(Get-ChildItem (Join-Path $codex_dir 'agents') -Filter *.toml -ErrorAction SilentlyContinue)
+    if ($agent_files.Count -eq 0) {
+        $failures.Add('live 里找不到 ~/.codex/agents/*.toml（目录缺失或为空）')
+    }
     $rows = @()
     $rows += [pscustomobject]@{ File = 'codex/AGENTS.global.md'; State = (Copy-IfChanged (Join-Path $codex_dir 'AGENTS.md') (Join-Path $repo 'codex\AGENTS.global.md')) }
-    Get-ChildItem (Join-Path $codex_dir 'agents') -Filter *.toml -ErrorAction SilentlyContinue | ForEach-Object {
+    $agent_files | ForEach-Object {
         $rows += [pscustomobject]@{ File = "codex/agents/$($_.Name)"; State = (Copy-IfChanged $_.FullName (Join-Path $repo "codex\agents\$($_.Name)")) }
     }
-    if ($rows.Count -eq 0) { $failures.Add('live 里找不到 ~/.codex/AGENTS.md 或 agents/*.toml') }
     $rows | ForEach-Object {
         "  {0,-34} {1}" -f $_.File, $_.State
         if ($_.State -eq 'missing-live') { $failures.Add("live 缺失：$($_.File)（仓库保留旧快照）") }

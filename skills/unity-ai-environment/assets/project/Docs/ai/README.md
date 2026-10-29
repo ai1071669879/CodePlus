@@ -1,5 +1,7 @@
 # 项目 AI 环境入口
 
+开始先读 [workflow.json](workflow.json) 与 [当前工作流](workflow.md)；初始化按 [可选目录](setup-options.json) 展示工具和模式供使用者选择。此文件为原生模式入口；Harness 模式会替换冲突正文。
+
 | 文件 | 职责 |
 | --- | --- |
 | [project-rules.md](project-rules.md) | 任务行为与唯一规则定义 |
@@ -42,6 +44,9 @@ python tools/ai/contract_check.py selftest
 扩展工具（仍在项目根执行）：
 
 ```text
+python tools/ai/project_setup.py list
+python tools/ai/project_setup.py check
+python tools/ai/context.py --paths <相对文件或目录>
 python tools/ai/environment.py modules
 python tools/ai/environment.py doctor
 python tools/ai/evaluate.py validate
@@ -51,12 +56,13 @@ python tools/ai/evaluate.py validate
 | --- | --- |
 | [工具接入规则](tool-integrations.md) | [environment.py](../../tools/ai/environment.py)，C3/C4 信任清单、版本探测，C6–C8 按需模块 |
 | [质量证据](quality-workflows.md) | [evaluate.py](../../tools/ai/evaluate.py)、[evals.json](evals.json)，C1 行为用例与轨迹评分 |
+| 编辑器内中继（可选） | [UnityEditorGate.cs](../../Editor/UnityEditorGate/UnityEditorGate.cs) + [unity_editor.py](../../tools/ai/unity_editor.py)；需工程已在 Editor 中打开，默认不启用 |
 | 架构约束 C2 | [quality.py](../../tools/ai/quality.py) + [architecture-policy.json](architecture-policy.json)，需实际依赖图 |
 | 本地扫描 C5 | 同一 quality.py + [gitleaks.toml](gitleaks.toml)，需自行接入可信 Gitleaks |
 
 外部接入默认 disabled/unconfigured；内置工具与模板已经部署。环境结构、版本探测、日志证据与真实模型/工程执行分别报告，不能互相替代。
 
-Unity 测试 XML、性能预算、SARIF 和显式 Assets 检查：见 [Unity 工具与验收](unity-tooling.md)、[unity_checks.py](../../tools/ai/unity_checks.py) 与 [unity-validation.json](unity-validation.json)。U1 编辑器接入按需互斥选择，不自动启动或安装。
+Unity 测试 XML、性能预算、SARIF 和显式 Assets 检查：见 [Unity 工具与验收](unity-tooling.md)、[unity_checks.py](../../tools/ai/unity_checks.py) 与 [unity-validation.json](unity-validation.json)。U1 官方 CLI、Coplay 和 AnkleBreaker 按需互斥选择，不自动启动或安装。已打开 Editor 需要自动化通道时，按 [unity-tooling.md](unity-tooling.md) 的 U0 使用可选 gate，并先在任务记录中明确授权范围。
 
 
 ## 项目基线与适配

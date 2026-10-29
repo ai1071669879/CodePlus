@@ -2,7 +2,7 @@
 
 ## 只读发现
 
-定位同时包含 Assets 与 ProjectSettings/ProjectVersion.txt 的目录。bootstrap 只看指定根及两层子目录；多个命中不自行选择，plan 报告后由操作者用 --unity-root 指定。有限探测不代表遍历全部源码，且不触发 Unity 导入。
+定位同时包含 Assets 与 ProjectSettings/ProjectVersion.txt 的目录。bootstrap 扫描指定根下的完整目录树（不限深度）；多个命中不自行选择，plan 报告后由操作者用 --unity-root 指定。静态发现只做盘点，不解析源码语义，也不触发 Unity 导入。
 
 读取 ProjectVersion.txt 确认实际 Editor 版本；读取已登记 Unity 根下的 Packages/manifest.json、packages-lock.json 识别包，按需检查图形/构建设置、现有 asmdef 及少量真实入口。仅凭包名不能证明当前场景/构建使用某个渲染管线或热更方案。
 
@@ -40,7 +40,9 @@ unity.config_source、event_tools、ui_binding 只通过 capability 引用顶层
 
 先只读确认 Test Framework/Performance Testing 包及既有测试程序集、真实命令和结果格式，不添加 asmdef。确认分析器是否由实际构建加载并能导出带执行证据的 SARIF；IDE 提示单独记录。确认文本序列化、meta、UnityYAMLMerge 安装位置和已有 LFS 策略；只读资源检查按任务显式选路径。操作与输入合同见 [Unity 工具](../assets/project/Docs/ai/unity-tooling.md)。
 
-需要编辑器桥接时先比较目标版本和实际功能：官方 CLI 当前 experimental，Pipeline 要求 Unity 6+；Coplay 按固定版本支持范围核对。仅选一个 unity-editor 组能力，先核工程身份、工具清单和只读查询。发现菜单/连接不等于项目专属导出/事件工具可用，原 capabilities 的能力证据仍须独立取得。
+需要编辑器桥接时先比较目标版本和实际功能：官方 CLI 当前 experimental，Pipeline 要求 Unity 6+；Coplay 按固定版本支持范围核对。官方CLI、Coplay和AnkleBreaker都在可选目录；仅选一个 unity-editor 组能力，先核工程身份、工具清单和只读查询。发现菜单/连接不等于项目专属导出/事件工具可用，原 capabilities 的能力证据仍须独立取得。
 
 
 初始化扫描不限工程目录深度，完整记录所发现Unity根；多个根保持明确选择，不自动猜测。静态清单包括源码、asmdef/asmref、包清单、配置、文档、测试与资源元数据；Library等缓存、链接和敏感内容排除并留证。随后核读程序集/资源/配置/事件工具真实入口完成语义适配，不把目录名或包名推断成已验证能力。
+
+初始化前展示当前工具/模式目录，让使用者选择。若选unity-harness-init，Unity Skills REST、上游模板与Copilot /fleet/交叉模型是强制前置；定位依赖并按实际版本验证，不以其它桥接替代。目标运行按生成后的workflow.md，不叠加原生相冲突的合同和状态规则。

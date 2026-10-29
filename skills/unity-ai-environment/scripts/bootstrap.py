@@ -103,6 +103,7 @@ def run(args):
     sys.path.insert(0, str(assets / 'tools/ai'))
     from baseline import scan_project, adapt_project, render_adaptation
     from entry_budget import check_entry
+    from project_setup import select_configuration, describe_options
     platforms = sorted(set(PLATFORMS if 'all' in args.platform else args.platform))
     warnings = []
     files = {}
@@ -119,6 +120,54 @@ def run(args):
     if profile['project']['kind'] not in ('general', 'unity'):
         raise ValueError('Unknown project kind in package')
     profile['project']['name'] = args.project_name if args.project_name is not None else root.name
+    catalog = json.loads(files['Docs/ai/setup-options.json'].decode('utf-8'))
+    workflow_path = 'Docs/ai/workflow.json'
+    mode = args.workflow
+    existing_workflow = project_path(root, workflow_path)
+    if existing_workflow.is_file():
+        workflow = json.loads(existing_workflow.read_text(encoding='utf-8'))
+        if (not isinstance(workflow, dict) or type(workflow.get('schema_version')) is not int
+                or workflow['schema_version'] != 1
+                or workflow.get('mode') not in ('native', 'unity-harness-init')):
+            raise ValueError('Existing workflow must have schema_version 1 and a valid mode')
+        if mode is None:
+            mode = workflow['mode']
+    mode = mode or 'native'
+    selected_tools = args.tools
+    existing_profile = project_path(root, profile_path)
+    if existing_profile.is_file():
+        current_profile = json.loads(existing_profile.read_text(encoding='utf-8'))
+        if not isinstance(current_profile, dict) or not isinstance(current_profile.get('capabilities'), dict):
+            raise ValueError('Existing project profile and capabilities must be objects')
+        capabilities = current_profile['capabilities']
+        for identifier, capability in capabilities.items():
+            if not isinstance(capability, dict):
+                raise ValueError(f'Existing capability must be an object: {identifier}')
+            if 'integration' in capability and not isinstance(capability['integration'], dict):
+                raise ValueError(f'Existing capability integration must be an object: {identifier}')
+        if selected_tools is None:
+            known = {item['id'] for item in catalog['tools']}
+            selected_tools = [identifier for identifier, capability in capabilities.items()
+                              if identifier in known and capability.get('integration', {}).get('enabled') is True]
+    profile = select_configuration(profile, catalog, mode, selected_tools)
+    if mode != 'native':
+        overlay = assets.parent / 'workflows' / mode
+        if not overlay.is_dir():
+            raise ValueError('The package is missing the selected workflow assets')
+        for source in sorted(overlay.rglob('*')):
+            if source.is_file():
+                if not source.resolve().is_relative_to(overlay.resolve()):
+                    raise ValueError('Workflow template link escapes its package')
+                relative = source.relative_to(overlay).as_posix()
+                # The upstream runtime root is lowercase; Windows stores the
+                # overlay beside Docs/ai in the same case-insensitive directory.
+                if relative.startswith('Docs/harness/'):
+                    relative = 'docs/harness/' + relative[len('Docs/harness/'):]
+                project_path(root, relative)
+                files[relative] = source.read_bytes()
+    files[profile_path] = encoded_json(profile)
+    files[workflow_path] = encoded_json({'schema_version': 1, 'mode': mode})
+    options = describe_options(profile, catalog, mode)
     files.setdefault('.gitignore', b'.ai-local.json\n')
     if 'claude' in platforms:
         files['CLAUDE.md'] = b'Read and follow [AGENTS.md](AGENTS.md) and [the project AI guide](Docs/ai/README.md).\n'
@@ -143,6 +192,10 @@ def run(args):
                     and target.stat().st_size == len(files[relative])
                     and target.read_bytes() == files[relative])):
                 owned.add(relative)
+                if os.name == 'nt' and relative.startswith('docs/harness/'):
+                    # os.walk returns the existing Docs casing on Windows;
+                    # both spellings identify this same managed runtime file.
+                    owned.add('Docs/harness/' + relative[len('docs/harness/'):])
         return owned
 
     managed_paths = scan_outputs()
@@ -253,6 +306,7 @@ def run(args):
                 target.write_bytes(output[change['path']])
     return {'ok': not conflicts, 'action': args.action, 'changes': changes,
             'conflicts': conflicts, 'errors': [], 'warnings': warnings,
+            **options,
             'entry_budgets': entry_budgets,
             'baseline_scan': {**baseline['scan'], 'file_count': len(baseline['files'])}}, 2 if conflicts else 0
 
@@ -264,6 +318,10 @@ def main():
     parser.add_argument('--project-name')
     parser.add_argument('--platform', nargs='+', choices=(*PLATFORMS, 'all'), default=['codex'])
     parser.add_argument('--unity-root')
+    parser.add_argument('--workflow', choices=('native', 'unity-harness-init'),
+                        help='Select the workflow; existing mode is retained when omitted')
+    parser.add_argument('--tools', nargs='+', metavar='CAPABILITY',
+                        help='Select optional tools by catalog ID; use none to skip optional tools')
     parser.add_argument('--diff', action='store_true', help='Include candidate unified diffs in changes')
     try:
         data, code = run(parser.parse_args())

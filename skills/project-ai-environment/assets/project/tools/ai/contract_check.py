@@ -159,20 +159,33 @@ def find_forbidden(root: Path, scope: list[str], rules: list[dict], keep_roots: 
 
 
 def declared_public_types(root: Path, scope: list[str]) -> dict[str, list[str]]:
-    """Map type name -> ['relative/path:line'] for public declarations in scope."""
+    """Map type name -> ['relative/path:line'] for public declarations in scope.
+
+    An unreadable or undecodable source file is a hard error, never a silent skip: a
+    baseline produced from a partial scan looks complete and hides the types it missed.
+    """
     found: dict[str, list[str]] = {}
+    unreadable: list[str] = []
     for path in iter_files(root, scope):
         if path.suffix != '.cs':
             continue
         try:
             text = read_text(path)
-        except (OSError, UnicodeError):
+        except (OSError, UnicodeError) as error:
+            unreadable.append(f'{path.relative_to(root).as_posix()} ({error})')
             continue
         relative = path.relative_to(root).as_posix()
         for regex in (PUBLIC_TYPE, PUBLIC_DELEGATE):
             for match in regex.finditer(text):
                 line = text.count('\n', 0, match.start()) + 1
                 found.setdefault(match.group(1), []).append(f'{relative}:{line}')
+    if unreadable:
+        shown = '; '.join(unreadable[:5])
+        if len(unreadable) > 5:
+            shown += f'; ... and {len(unreadable) - 5} more'
+        raise ContractError(
+            f'cannot read {len(unreadable)} source file(s) while scanning public types: {shown}; '
+            'refusing to scan a partial set')
     return found
 
 
@@ -430,8 +443,32 @@ def selftest() -> int:
         contract.write_text(deferred_contract, encoding='utf-8')
         deferred = check(root, contract)
         assert deferred['status'] == 'unverified' and deferred['ok'], deferred
+        # an unreadable source file must fail loudly, never yield a smaller baseline
+        (root / 'src' / 'Broken.cs').write_text('public class Broken { }\n', encoding='utf-8')
+        original_read_text = globals()['read_text']
+
+        def failing_read_text(path: Path) -> str:
+            if path.name == 'Broken.cs':
+                raise OSError('simulated unreadable file')
+            return original_read_text(path)
+
+        globals()['read_text'] = failing_read_text
+        try:
+            try:
+                declared_public_types(root, ['src'])
+            except ContractError as error:
+                assert 'Broken.cs' in str(error) and 'refusing' in str(error), error
+            else:
+                raise AssertionError('unreadable source must raise ContractError, not be skipped')
+            baseline_exit = main(['baseline', '--paths', 'src', '--repo', str(root)])
+            assert baseline_exit == 2, baseline_exit
+        finally:
+            globals()['read_text'] = original_read_text
+            (root / 'src' / 'Broken.cs').unlink()
+
         print('selftest passed: pass, forbidden, public-type modifiers, record struct, excluded '
-              'paths, keep/rewrite overlap, unregistered task, golden, and deferred-gate cases')
+              'paths, keep/rewrite overlap, unregistered task, golden, deferred-gate, and '
+              'unreadable-source cases')
         return 0
     finally:
         shutil.rmtree(root, ignore_errors=True)
@@ -445,7 +482,8 @@ def main(argv: list[str] | None = None) -> int:
     check_parser.add_argument('--repo', default='.', help='repository root (default: cwd)')
     check_parser.add_argument('--json', action='store_true', help='print the structured result')
     baseline_parser = subparsers.add_parser(
-        'baseline', help='emit the current public-type baseline for the given paths')
+        'baseline', help='emit the current public-type baseline for the given paths '
+                         '(exit 2 if any source file cannot be read)')
     baseline_parser.add_argument('--paths', nargs='+', required=True, help='repo-relative paths')
     baseline_parser.add_argument('--repo', default='.', help='repository root (default: cwd)')
     baseline_parser.add_argument('--out', help='write to this repo-relative file instead of stdout')
@@ -457,7 +495,11 @@ def main(argv: list[str] | None = None) -> int:
 
     root = Path(args.repo).resolve()
     if args.command == 'baseline':
-        declared = declared_public_types(root, args.paths)
+        try:
+            declared = declared_public_types(root, args.paths)
+        except (ContractError, OSError, UnicodeError) as error:
+            print(f'contract error: {error}', file=sys.stderr)
+            return 2
         lines = ['# public type baseline, one name per line; regenerate with contract_check.py baseline',
                  '# generated from the working tree: do not hand-edit names into existence']
         lines.extend(sorted(declared))

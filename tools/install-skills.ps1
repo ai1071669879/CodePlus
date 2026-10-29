@@ -1,5 +1,5 @@
 ﻿<#
-install-skills.ps1 —— 把 CodePlus 仓库里的两个项目技能装到本机（仓库 -> live）。
+install-skills.ps1 —— 把 CodePlus 仓库收录的项目技能装到本机（仓库 -> live）。
 
 与 Codex 全局环境完全分开：只写 `~/.codex/skills/<name>/`，不碰 AGENTS.md / agents / config.toml。
 全局环境安装用 tools/install-codex-env.ps1。
@@ -10,7 +10,7 @@ install-skills.ps1 —— 把 CodePlus 仓库里的两个项目技能装到本�
 #>
 param(
     [switch]$Apply,
-    [string[]]$Only = @('project-ai-environment', 'unity-ai-environment')
+    [string[]]$Only = @('project-ai-environment', 'unity-ai-environment', 'design-patterns')
 )
 
 $ErrorActionPreference = 'Stop'

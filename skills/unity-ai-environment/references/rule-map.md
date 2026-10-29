@@ -41,7 +41,7 @@ bootstrap 提供 plan/apply --diff、全树静态根发现、嵌套入口和整�
 
 ## 去重与维护
 
-不要同时叠装两套项目环境。共同底座在两个独立包内保留同步发行副本；项目内部规则正文、schema 说明、生成目录和能力状态各保持单一来源。公共脚本 bootstrap.py/check_env.py/contract_check.py、规则 project-rules.md、配置合同 configuration.md、任务模板 task-template.md/task-contract.md、文档权威 authority.md、产物基准 golden/README.md、安装与 CI 说明 setup-guide.md/ci-integration.md 及公共测试同步维护，Unity 差异只放专用资产和说明。
+不要同时叠装两套项目环境。共同底座在两个独立包内保留发行副本；Unity专有可选工具/模式由本包bootstrap扩展，通用包不导入该扩展；项目内部规则正文、schema 说明、生成目录和能力状态各保持单一来源。公共脚本 bootstrap.py/check_env.py/contract_check.py、规则 project-rules.md、配置合同 configuration.md、任务模板 task-template.md/task-contract.md、文档权威 authority.md、产物基准 golden/README.md、安装与 CI 说明 setup-guide.md/ci-integration.md 及公共测试同步维护，Unity 差异只放专用资产和说明。
 
 更新后运行两包测试、skill 校验和隔离初始化检查，再比较安装基线发布。Unity 包从包目录运行：
 
@@ -81,3 +81,11 @@ U2–U4：unity_checks.py + unity-validation.json + unity-tooling.md，覆盖测
 根AGENTS直接保留四项原则、开始任务/身份范围/当前分支、生成物/敏感边界、协作、验证与交付；Unity补资源/meta、程序集/依赖、内容导出和设备验收。详细流程仍在原正文，只新增adaptation唯一规则来源。摘要不得替代原条款或重复定义权限。
 
 bootstrap自动全树静态扫描→baseline.py生成文件/技术栈/已有规则/命令来源基线→证据适配profile/context/project-adaptation→entry_budget校验完整AGENTS→整批冲突预检后写入。源码/工程清单/配置/文档/CI/资源元数据覆盖，敏感/缓存/链接/大文本排除与缺口显式记录；不声称运行和全仓语义结论。保留原回归及新test_baseline.py/test_core_bootstrap.py/test_core_contract.py，公共实现和测试两包镜像。
+
+## 可选工具与工作流模式
+
+project_setup.py + setup-options.json 提供可读工具/模式目录、无副作用选择与强制前置检查；workflow.json 是唯一模式配置。bootstrap在原事务中接入--tools/--workflow并条件装配assets/workflows/unity-harness-init，未选模式资产不会部署。工具状态仍在profile，未知/互斥冲突整批拒绝；前置检查不执行联网、安装或实际Editor会话。
+
+原生模式吸收完整职责切片、文件归属、按路径导航和分支/执行者接力。Harness模式保留上游REST、/fleet、TDD、交叉模型Reviewer和维护窗口，实际替换冲突正文；progress为状态源，Tasks只留接力。取舍与来源见 [workflow-integration.md](workflow-integration.md)。context.py直接复用check_env导航时效，不造第二索引。
+
+新增行为门禁：test_setup_options.py、test_context_routes.py、test_workflow_modes.py --skill .。原公共bootstrap测试继续回归；Unity专有初始化扩展不要求将工具/模式带入通用包。门禁、平台实际加载与真实工具连接分开。

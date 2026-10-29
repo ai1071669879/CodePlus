@@ -3,7 +3,7 @@ verify-repo.ps1 —— 本机一致性校验（**依赖 ~/.codex 现状**）。
 
 它验证「这台机器上的 live 环境」与「仓库快照」一致，分两块，**互不混用**：
   A. Codex 全局环境（AGENTS.md / agents / 指南 / gudie 一致性）
-  B. 项目技能（两个 skill 的镜像与安装计划）
+  B. 项目技能（仓库收录 skill 的镜像与安装计划）
 
 新克隆/新机器上必然有若干项失败，正确顺序是先 install-codex-env.ps1 -Apply 与
 install-skills.ps1 -Apply，再跑本脚本。因此**不要把它接进没有 live 配置的 CI**。
@@ -16,7 +16,7 @@ install-skills.ps1 -Apply，再跑本脚本。因此**不要把它接进没有 l
   5. [全局] live 配置 -> 指南 已一致（sync-config -Preview exit 0 且无 [同步]）
   6. [全局] 仓库 -> live 安装计划为空（install-codex-env exit 0 且 0 项变更）
   7. [全局] codex/ 与本机逐文件哈希一致
-  8. [技能] 两个 skill 双向一致（sync-skills 无 drift；install-skills 计划为空）
+  8. [技能] 仓库技能双向一致（sync-skills 无 drift；install-skills 计划为空）
 
 用法：
     powershell -NoProfile -File <repo>\tools\verify-repo.ps1
@@ -54,16 +54,20 @@ Get-ChildItem (Join-Path $PSScriptRoot '*.ps1') | ForEach-Object {
 }
 
 Write-Host '2/8 Python 脚本可编译' -ForegroundColor Cyan
+# 用 AST 解析而不是 py_compile：后者会写 __pycache__（py_compile 不遵守 -B），
+# 校验脚本不应删除或新增仓库里的字节码缓存。
 Get-ChildItem (Join-Path $PSScriptRoot '*.py') | ForEach-Object {
-    & python -X utf8 -m py_compile $_.FullName
-    if ($LASTEXITCODE -eq 0) { Pass $_.Name } else { Fail $_.Name 'py_compile failed' }
+    & python -X utf8 -c "import ast, pathlib, sys; ast.parse(pathlib.Path(sys.argv[1]).read_text(encoding='utf-8-sig'))" $_.FullName
+    if ($LASTEXITCODE -eq 0) { Pass $_.Name } else { Fail $_.Name 'syntax check failed' }
 }
-Remove-Item (Join-Path $PSScriptRoot '__pycache__') -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host '3/8 仓库卫生（无字节码缓存）' -ForegroundColor Cyan
+# backups/ 是同步脚本的本地回滚产物、.git/ 是版本库元数据：两者都不随仓库发布，
+# 不应因为其中含有缓存就让本机校验失败。
 $caches = @(Get-ChildItem $repo -Recurse -Force -Directory -ErrorAction SilentlyContinue |
-    Where-Object { $_.Name -in @('__pycache__', '.pytest_cache') })
-$pyc = @(Get-ChildItem $repo -Recurse -Force -File -Filter '*.pyc' -ErrorAction SilentlyContinue)
+    Where-Object { ($_.FullName -notlike '*\backups\*') -and ($_.FullName -notlike '*\.git\*') -and ($_.Name -in @('__pycache__', '.pytest_cache')) })
+$pyc = @(Get-ChildItem $repo -Recurse -Force -File -Filter '*.pyc' -ErrorAction SilentlyContinue |
+    Where-Object { ($_.FullName -notlike '*\backups\*') -and ($_.FullName -notlike '*\.git\*') })
 if ($caches.Count -eq 0 -and $pyc.Count -eq 0) { Pass 'no cache residue' }
 else { Fail 'no cache residue' ("dirs=$($caches.Count) pyc=$($pyc.Count); 删除后重跑") }
 
@@ -97,7 +101,7 @@ foreach ($pair in $pairs) {
     else { Fail $pair.Name 'hash differs from live' }
 }
 
-Write-Host '8/8 [技能] 两个 skill 双向一致' -ForegroundColor Cyan
+Write-Host '8/8 [技能] 仓库技能双向一致' -ForegroundColor Cyan
 $skillSync = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'sync-skills.ps1') -Preview 2>&1 | Out-String
 if ($LASTEXITCODE -ne 0) { Fail 'sync-skills -Preview' "exit=$LASTEXITCODE" }
 elseif ($skillSync -match 'drift') { Fail 'sync-skills -Preview' 'skill drift between live and repo; run sync-skills.ps1' }
@@ -106,7 +110,7 @@ $skillInstall = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path
 if ($LASTEXITCODE -ne 0) { Fail 'install-skills preview' "exit=$LASTEXITCODE" }
 elseif ($skillInstall -match '需要安装：0 项') { Pass 'install-skills preview' }
 else { Fail 'install-skills preview' 'repo skills differ from live; run install-skills.ps1 -Apply' }
-foreach ($name in @('project-ai-environment', 'unity-ai-environment')) {
+foreach ($name in @('project-ai-environment', 'unity-ai-environment', 'design-patterns')) {
     $repoDir = Join-Path $repo "skills\$name"
     $liveDir = Join-Path $home_dir ".codex\skills\$name"
     if (-not (Test-Path $liveDir)) { Fail "skills/$name" 'missing live skill'; continue }

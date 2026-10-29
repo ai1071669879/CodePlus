@@ -1,0 +1,7 @@
+interface:
+  display_name: "设计模式（26 种）"
+  short_description: "创建型 6 / 结构型 8 / 行为型 12 的选型、实现与反模式红线，含 C# 示例与项目规则衔接"
+  default_prompt: "使用 $design-patterns 判断这里该用哪个设计模式（或不该用模式），并逐条核对适用条件、不要用于、代价与反模式红线。"
+
+policy:
+  allow_implicit_invocation: true

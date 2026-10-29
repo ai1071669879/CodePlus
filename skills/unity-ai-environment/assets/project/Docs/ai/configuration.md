@@ -93,10 +93,10 @@ rules.json 的 sources 将规则 id 指向唯一文档，正文使用对应 ai-r
 | 子命令 | 用途 | 退出码 |
 | --- | --- | --- |
 | `check --contract <相对路径>` | 校验章节、机器块、禁止项、`[Rewrite]` 内的 public 类型与 `golden` 比较；`--json` 输出结构化结果 | 0 通过；1 违规；2 契约或参数不合法，或 `deferred_gate` 未验证 |
-| `baseline --paths <相对路径>...` | 从工作树提取 public 类型并生成清单；`--out` 写入文件，否则打印到标准输出 | 0 完成；2 参数不合法 |
+| `baseline --paths <相对路径>...` | 从工作树提取 public 类型并生成清单；`--out` 写入文件，否则打印到标准输出 | 0 完成；2 参数不合法或源文件不可读 |
 | `selftest` | 在临时目录构造通过、违规、基准与延后门禁用例，自检判定器 | 0 自检通过；断言失败非零 |
 
-退出码语义固定为 `0` 通过、`1` 违规、`2` 用法或配置错误以及未验证；`2` 不能当作通过，也不能用解释性输出替代退出码。`deferred_gate` 为 `true` 且无其它违规时，`check` 的 status 是 `unverified`、退出码为 `2`，表示延后的收口门禁尚未运行，任务不算完成；`[Gate]` 必须写明 `deferred until <收口门禁>`，不得保留模板占位符。
+退出码语义固定为 `0` 通过、`1` 违规、`2` 用法或配置错误以及未验证；`2` 不能当作通过，也不能用解释性输出替代退出码。扫描 public 类型时遇到不可读或不可解码的源文件同样返回 `2`，且不产生部分清单——残缺基线不得伪装成成功。`deferred_gate` 为 `true` 且无其它违规时，`check` 的 status 是 `unverified`、退出码为 `2`，表示延后的收口门禁尚未运行，任务不算完成；`[Gate]` 必须写明 `deferred until <收口门禁>`，不得保留模板占位符。
 
 初始化只复制上述文件；随包的 `public-type-baseline.txt` 仅含两行注释，不含源码类型。初始化后由维护者在项目根显式运行 `python tools/ai/contract_check.py baseline --paths <源码根> --out Docs/ai/public-type-baseline.txt` 生成真实清单；脚本不猜测类型，空清单会把 `[Rewrite]` 范围内的既有类型全部报为 unexpected，因此该项检查以已生成的清单为前提。
 
@@ -154,3 +154,15 @@ capability.command 仍是实际功能命令的参数数组，probe 是独立的�
 根摘要只保留高频决策边界，规则字段和详细流程仍各有唯一正文；摘要与正文冲突属于缺陷，须同时修正并核证据，不靠优先级掩盖。
 
 初始化候选路径与现有人写文件同名，不代表该文件已受管：已有manifest或相同候选内容才可作为受管排除依据；冲突的旧规则仍须进入盘点和已有规则清单，随后整批报告冲突。AGENTS/CLAUDE/.gitignore始终保留人工部分。模块导航包含真实manifest目录，也包含未归属任何manifest目录的源码首级目录，不能因其他子工程有清单而漏掉独立源码。
+
+## 可选目录与当前模式
+
+`setup-options.json` 是静态目录，schema_version=1，tools 每项含 id/name/summary/features/prerequisites/setup；id 必须对应 profile.capabilities，setup 是项目内配方文档路径。它没有 enabled/state/version/evidence，不是第二份能力状态表。
+
+workflows 每项含 id/name/summary/required_tools/state_source/guide。内置 native 无强制外部工具；unity-harness-init 的强制工具集合固定为 unity-skills-rest、unity-harness-init、copilot-cli，不能通过清空目录依赖降级。`workflow.json` 只存 schema_version=1 与 mode（native/unity-harness-init），是模式选择唯一配置。
+
+bootstrap plan/apply 支持 --workflow 与 --tools；省略模式保留既有选择，首次为 native；--tools none 表示不选可选工具。明确工具列表仅改变目录中能力的 enabled，模式必需项另设 enabled/required；不自动改 state、version 或证据，不运行外部工具。互斥组冲突退出2且不写任何文件。不同模式的正文覆盖只在安装事务中选中，切换已有定制须人工合并，不静默覆盖。
+
+`project_setup.py list` 返回选项、当前配置与缺项；check 的0只表示当前已登记前置结构满足，1为无效结构，2为模式强制前置未验证，不把元数据当本次在线会话。`context.py` 复用既有索引按多个ID/别名或路径定向选择；只读输出必要入口、导航时效与声明的not_run门禁，不创建新索引、执行构建或证明实际加载。
+
+字段中的 Tasks 状态适用于 native；Harness 模式状态唯一在 docs/harness/progress.md，Tasks/index.json 保持空任务表，其余 Tasks Markdown只作接力。运行时配置和宿主实际加载分别取证。

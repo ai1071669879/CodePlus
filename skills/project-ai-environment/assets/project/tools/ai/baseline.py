@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Inventory a workspace without executing its code or reading sensitive files."""
+"""Inventory a workspace without executing its code. Content of paths matched by the
+sensitive-path policy is never read; unlisted credential shapes must be excluded explicitly."""
 import copy
 import hashlib
 import json
@@ -60,13 +61,22 @@ MANIFEST_NAMES = {
 }
 
 
+SENSITIVE_DIRS = {'.aws', '.docker', '.ssh', '.gnupg', '.kube'}
+SENSITIVE_NAMES = {'.env', 'auth.json', '.npmrc', '.netrc', '.pypirc', '.git-credentials'}
+SENSITIVE_PREFIXES = ('.env.', '.ai-local')
+SENSITIVE_NAME_RE = re.compile(r'(?:^|[._-])(?:credentials?|secrets?)(?:[._-]|$)')
+SENSITIVE_SUFFIXES = {'.key', '.pem', '.pfx', '.p12', '.jks', '.keystore'}
+
+
 def sensitive(relative):
+    """Conservative credential/config policy; unknown shapes must be excluded explicitly."""
     parts = PurePosixPath(relative).parts
     name = parts[-1].casefold()
-    return (any(part.casefold() == '.aws' for part in parts)
-            or name == '.env' or name.startswith('.env.')
-            or name.startswith('.credentials') or name in {'auth.json', '.npmrc', '.netrc', '.pypirc'}
-            or name.startswith('.ai-local') or PurePosixPath(name).suffix in {'.key', '.pem', '.pfx'})
+    return (any(part.casefold() in SENSITIVE_DIRS for part in parts)
+            or name in SENSITIVE_NAMES
+            or name.startswith(SENSITIVE_PREFIXES)
+            or SENSITIVE_NAME_RE.search(name) is not None
+            or PurePosixPath(name).suffix in SENSITIVE_SUFFIXES)
 
 
 def linked(path, metadata=None):

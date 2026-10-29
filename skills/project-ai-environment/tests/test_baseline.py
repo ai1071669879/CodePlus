@@ -74,7 +74,8 @@ class BaselineTests(Harness):
 
     def test_sensitive_cache_and_binary_contents_are_never_opened(self):
         blocked = ['.env', '.env.prod', '.credentials.yaml', 'auth.json', 'cert.key',
-                   'cert.pem', 'cert.pfx', '.ai-local.json', '.aws/config',
+                   'cert.pem', 'cert.pfx', '.ai-local.json', '.aws/config', '.docker/config.json',
+                   'credentials.json', 'credentials.yaml', 'credentials-prod.json', 'secrets.json',
                    'node_modules/pkg/index.js', '.git/config', 'art.png']
         for name in blocked:
             self.write(name, 'DO_NOT_READ_THIS_VALUE')
@@ -131,9 +132,9 @@ class BaselineTests(Harness):
         link = self.root / 'linked'
         try:
             link.symlink_to(outside, target_is_directory=True)
-        except OSError:
+        except OSError as error:
             if os.name != 'nt':
-                raise
+                self.skipTest('Host cannot create directory symlinks: ' + str(error))
             created = subprocess.run(['cmd', '/c', 'mklink', '/J', str(link), str(outside)],
                                      shell=False, capture_output=True, text=True)
             self.assertEqual(created.returncode, 0, created.stdout + created.stderr)

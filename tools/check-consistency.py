@@ -335,10 +335,14 @@ PROJECT_MEASURES = [
     r"\d+ 个生产文件", r"\d+ 个测试类", r"\d+ 个 partial",
     r"\d+ 条编号规则", r"\d+ 处规格引用",
 ]
+# 全局环境正文不得出现项目技能模块的名称与配置键（仓库 AGENTS.md「严格分离」第一条）。
+MODULE_TERMS = [
+    "project-ai-environment", "unity-ai-environment", "[[skills.config]]",
+]
 
 
 def check_guide_purity(src: dict[str, str]) -> list[str]:
-    """指南必须是「配置指南」，不是某项目的分析报告。"""
+    """指南必须是「配置指南」，不是某项目的分析报告，也不得混入项目技能模块内容。"""
     problems: list[str] = []
     for scope in ("guide", "templates"):
         txt = src.get(scope)
@@ -352,6 +356,10 @@ def check_guide_purity(src: dict[str, str]) -> list[str]:
             for m in re.finditer(pat, txt):
                 ln = txt[:m.start()].count("\n") + 1
                 problems.append(f"{scope} L{ln}: 含项目规模数据 {m.group(0)!r}")
+        for term in MODULE_TERMS:
+            for m in re.finditer(re.escape(term), txt):
+                ln = txt[:m.start()].count("\n") + 1
+                problems.append(f"{scope} L{ln}: 含项目技能模块内容 {term!r}")
     return problems
 
 

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "sources": {
+    "workflow": "Docs/ai/workflow.md",
+    "identity": "Docs/ai/project-rules.md",
+    "principles": "Docs/ai/project-rules.md",
+    "intent": "Docs/ai/workflow.md",
+    "execution": "Docs/ai/workflow.md",
+    "grading": "Docs/ai/workflow.md",
+    "scope": "Docs/ai/project-rules.md",
+    "generated": "Docs/ai/project-rules.md",
+    "commit": "Docs/ai/project-rules.md",
+    "tracking": "Docs/ai/workflow.md",
+    "verification": "Docs/ai/workflow.md",
+    "engineering": "Docs/ai/unity-rules.md",
+    "planning": "Docs/ai/planning-workflows.md",
+    "tooling": "Docs/ai/tool-integrations.md",
+    "quality": "Docs/ai/quality-workflows.md",
+    "unity-tooling": "Docs/ai/unity-tooling.md",
+    "adaptation": "Docs/ai/project-adaptation.md"
+  }
+}

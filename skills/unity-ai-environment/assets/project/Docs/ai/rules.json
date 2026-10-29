@@ -1,6 +1,7 @@
 {
   "schema_version": 1,
   "sources": {
+    "workflow": "Docs/ai/workflow.md",
     "identity": "Docs/ai/project-rules.md",
     "principles": "Docs/ai/project-rules.md",
     "intent": "Docs/ai/project-rules.md",

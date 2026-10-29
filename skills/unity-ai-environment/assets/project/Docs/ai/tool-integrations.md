@@ -2,7 +2,7 @@
 
 <!-- ai-rule: tooling -->
 
-工具的唯一登记处是 [project-profile.json](project-profile.json) 的 capabilities；字段合同见 [configuration.md](configuration.md)。本页定义接入过程，不另存工具状态。规则/模板/检查器随初始化部署；第三方程序、MCP 服务、账号与许可证不随之安装或授权。默认外部接入均 disabled/unconfigured，维护者按已有授权启用。已有明确授权不重复确认。
+工具的唯一登记处是 [project-profile.json](project-profile.json) 的 capabilities；字段合同见 [configuration.md](configuration.md)。本页定义接入过程，不另存工具状态。规则/模板/检查器随初始化部署；第三方程序、MCP 服务、账号与许可证不随之安装或授权。原生模式首次初始化默认外部接入 disabled/unconfigured；选择工具只设置 enabled，选择 Harness 模式会额外设置其必需项 required。实际版本与能力证据仍需按已有授权核验。已有明确授权不重复确认。
 
 ## 发现、核验和启用
 
@@ -62,3 +62,5 @@ python tools/ai/quality.py secrets --paths <相对目录或文件> ...
 - [Gitleaks](https://github.com/gitleaks/gitleaks)：MIT，本地检测与脱敏参数。
 - [Serena](https://github.com/oraios/serena)、[Context7](https://github.com/upstash/context7)、[OpenSpec](https://github.com/Fission-AI/OpenSpec/blob/main/docs/getting-started.md)：按需扩展，互不替代已有治理和导航事实。
 - [Dev Container 元数据规范](https://github.com/devcontainers/spec/blob/main/docs/specs/devcontainer-reference.md)：借鉴可复现环境声明；本包 doctor 为自有实现，不要求 Docker，也不宣称是该规范的官方诊断器。
+
+可选工具与模式由 [setup-options.json](setup-options.json) 列出，选择过程见 [workflow.md](workflow.md)；三种 Editor 桥接分别按 [Unity 配方](unity-tooling.md) 配置。Harness 模式的强制 REST 和宿主流程以该模式正文为准，不受默认可选规则降级。

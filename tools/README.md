@@ -6,8 +6,8 @@
 | --- | --- | --- | --- |
 | [sync-config.ps1](sync-config.ps1) | Codex 全局环境 | live → 仓库 | 写指南、镜像 `codex/`、跑一致性 |
 | [install-codex-env.ps1](install-codex-env.ps1) | Codex 全局环境 | 仓库 → live | 安装 `AGENTS.global.md`、`agents/*.toml`；写入前备份 |
-| [sync-skills.ps1](sync-skills.ps1) | 项目技能 | live → 仓库 | 镜像两个 skill 到 `skills/`；仓库侧旧内容先备份 |
-| [install-skills.ps1](install-skills.ps1) | 项目技能 | 仓库 → live | 安装两个 skill；live 侧先备份 |
+| [sync-skills.ps1](sync-skills.ps1) | 项目技能 | live → 仓库 | 镜像仓库收录的 skill 到 `skills/`；仓库侧旧内容先备份 |
+| [install-skills.ps1](install-skills.ps1) | 项目技能 | 仓库 → live | 安装仓库收录的 skill；live 侧先备份 |
 | [sync-guide.py](sync-guide.py) | 全局环境 | live → 指南 | 把 `AGENTS.md` 嵌入指南 §3.1，同步 §0/§4.1 与版本日期，重生成模板 |
 | [check-consistency.py](check-consistency.py) | 全局环境 | 校验 | 19 条表内规则 + 4 项附加检查（TOML 占位符 / 指南纯度 / 实证表述 / 版本日期） |
 | [verify-repo.ps1](verify-repo.ps1) | 两模块 | 校验 | 本机一致性（依赖 `~/.codex`）：8 项，见仓库 README |

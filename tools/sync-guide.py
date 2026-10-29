@@ -8,7 +8,7 @@
 它会做四件事：
   1. §3.1 内嵌的 `AGENTS.md` 全文  -> 与 `~/.codex/AGENTS.md` 逐字对齐
   2. §0 概览角色表 + §4.1 摘要表    -> 模型/档位/沙箱与 `agents/*.toml` 对齐
-  3. `CODEX-AGENTS-TEMPLATES.md`    -> 用四个 agent 正文重新生成
+  3. `CODEX-AGENTS-TEMPLATES.md`    -> 用五个 agent 正文重新生成
   4. 头部版本日期                   -> 更新为今天
 
 用法
@@ -16,7 +16,8 @@
     python -X utf8 sync-guide.py            # 只预览，不改文件（默认）
     python -X utf8 sync-guide.py --write    # 实际写入（先自动备份）
 
-退出码：0 = 已同步或已修好；1 = 有需要人工处理的问题
+退出码：0 = 已同步或已修好；1 = 有需要人工处理的问题（缺 agent / 锚点 / 表头等缺结构时
+        只报告、不写入，避免生成不完整内容）
 
 设计要点
 --------
@@ -73,19 +74,23 @@ def read(path: str) -> str:
     return io.open(path, encoding="utf-8", newline="").read().replace("\r\n", "\n")
 
 
-def load_agents() -> dict[str, dict]:
+def load_agents(problems: list[str]) -> dict[str, dict]:
     out = {}
     for n in AGENT_ORDER:
         p = os.path.join(AGENTS_DIR, n + ".toml")
         if not os.path.exists(p):
             print(f"  [warn] 缺少 {n}.toml")
+            problems.append(f"缺少 agents/{n}.toml（指南无法与该 agent 对齐）")
             continue
-        out[n] = tomllib.loads(read(p))
+        try:
+            out[n] = tomllib.loads(read(p))
+        except (tomllib.TOMLDecodeError, OSError) as e:
+            problems.append(f"agents/{n}.toml 无法读取或解析: {e}")
     return out
 
 
 def replace_block(txt: str, start_marker: str, end_marker: str,
-                  new_body: str, label: str, changes: list) -> str:
+                  new_body: str, label: str, changes: list, problems: list) -> str:
     """把 start_marker 与 end_marker 之间的内容换成 new_body。
 
     先比较**去尾换行后**的内容，只有实质不同才改写——
@@ -94,11 +99,13 @@ def replace_block(txt: str, start_marker: str, end_marker: str,
     i = txt.find(start_marker)
     if i < 0:
         changes.append(f"[跳过] {label}: 未找到起始锚点")
+        problems.append(f"{label}: 未找到起始锚点")
         return txt
     s = i + len(start_marker)
     j = txt.find(end_marker, s)
     if j < 0:
         changes.append(f"[跳过] {label}: 未找到结束锚点")
+        problems.append(f"{label}: 未找到结束锚点")
         return txt
     old = txt[s:j]
     if old.strip("\n") == new_body.strip("\n"):
@@ -130,7 +137,7 @@ def cell_get(line: str, col: int) -> str:
 
 def sync_table_columns(txt: str, header: str, key_col: int, key_fmt,
                        updates: dict[str, dict[int, str]],
-                       label: str, changes: list) -> str:
+                       label: str, changes: list, problems: list) -> str:
     """只同步表格的**配置列**，保留人工撰写的叙述列。
 
     updates: {行标识: {列号: 新值}}，行标识由 key_fmt(该行第 key_col 单元格) 得出。
@@ -144,6 +151,7 @@ def sync_table_columns(txt: str, header: str, key_col: int, key_fmt,
     i = txt.find(header)
     if i < 0:
         changes.append(f"[跳过] {label}: 未找到表头")
+        problems.append(f"{label}: 未找到表头")
         return txt
     lines = txt[i:].split("\n")
     k = 2
@@ -169,8 +177,10 @@ def sync_table_columns(txt: str, header: str, key_col: int, key_fmt,
     missing = set(updates) - seen
     if missing:
         changes.append(f"[注意] {label}: 表中缺 {sorted(missing)}")
+        problems.append(f"{label}: 表中缺 {sorted(missing)}（该行的配置值无法同步）")
     if n_changed == 0:
-        changes.append(f"[已一致] {label}")
+        if not missing:
+            changes.append(f"[已一致] {label}")
         return txt
     changes.append(f"[同步] {label}  ({n_changed} 个单元格)")
     old_block = "\n".join(lines[:k])
@@ -189,11 +199,11 @@ def main() -> int:
             print(f"**缺少文件**: {p}")
             return 1
 
-    agents = load_agents()
+    problems: list[str] = []
+    agents = load_agents(problems)
     log: list[str] = []
     agm = read(GLOBAL_MD).rstrip("\n")
     g = read(GUIDE)
-    problems: list[str] = []
 
     print("=" * 84)
     print("sync-guide" + ("" if args.write else "  【预览模式，未写入】"))
@@ -210,10 +220,15 @@ def main() -> int:
 
     # ---------- 1. §3.1 内嵌 AGENTS.md ----------
     new_g = replace_block(new_g, "````markdown\n", "\n````",
-                          agm, "§3.1 内嵌 AGENTS.md", log)
+                          agm, "§3.1 内嵌 AGENTS.md", log, problems)
 
     # ---------- 2a. §0 概览角色表 ----------
-    cfg = read(os.path.join(CODEX, "config.toml"))
+    cfg_path = os.path.join(CODEX, "config.toml")
+    if os.path.exists(cfg_path):
+        cfg = read(cfg_path)
+    else:
+        cfg = ""
+        problems.append("缺少 ~/.codex/config.toml（主线程模型/档位无法同步）")
     mm = re.search(r'(?m)^model = "([^"]+)"', cfg)
     me = re.search(r'(?m)^model_reasoning_effort = "([^"]+)"', cfg)
     upd0: dict[str, dict[int, str]] = {}
@@ -228,7 +243,7 @@ def main() -> int:
     new_g = sync_table_columns(
         new_g, "| 角色 | 模型档位 | 写入权限 | 定位 |", 1,
         lambda c: c.strip("*` ").split("`")[0].strip(),
-        upd0, "§0 概览角色表（模型/权限列）", log)
+        upd0, "§0 概览角色表（模型/权限列）", log, problems)
 
     # ---------- 2b. §4.1 摘要表 ----------
     upd41: dict[str, dict[int, str]] = {}
@@ -241,7 +256,7 @@ def main() -> int:
     new_g = sync_table_columns(
         new_g, "| 文件 | 模型 @ 档位 | 沙箱 | 职责边界", 1,
         lambda c: c.strip("` ").replace(".toml", ""),
-        upd41, "§4.1 agent 摘要表（档位/沙箱列）", log)
+        upd41, "§4.1 agent 摘要表（档位/沙箱列）", log, problems)
 
     # ---------- 3. 版本日期 ----------
     today = datetime.date.today().isoformat()
@@ -328,11 +343,21 @@ def main() -> int:
         parts.append("**重启 Codex** 后生效——`agents/*.toml` 在启动时读取。")
         tpl_new = "\n".join(parts) + "\n"
         if tpl_new == tpl_old:
-            print("  模板无需改动")
+            print("  [已一致] 模板文件")
         else:
-            print(f"  模板 {len(tpl_old):,} -> {len(tpl_new):,} 字符")
+            print(f"  [同步] 模板文件  ({len(tpl_old):,} -> {len(tpl_new):,} 字符)")
 
     # ---------- 写入 ----------
+    # 有缺结构时不写：预览已展示，--write 也不能生成不完整内容。
+    if problems:
+        print("\n  存在需人工处理的问题：本次未写入任何文件。")
+        print()
+        print("=" * 84)
+        print("需人工处理:")
+        for p in problems:
+            print(f"  · {p}")
+        print("=" * 84)
+        return 1
     if args.write:
         stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         if new_g != g:
@@ -352,14 +377,9 @@ def main() -> int:
 
     print()
     print("=" * 84)
-    if problems:
-        print("需人工处理:")
-        for p in problems:
-            print(f"  · {p}")
-    else:
-        print("完成。改完建议再跑一次 check-consistency.py 做校验。")
+    print("完成。改完建议再跑一次 check-consistency.py 做校验。")
     print("=" * 84)
-    return 1 if problems else 0
+    return 0
 
 
 if __name__ == "__main__":

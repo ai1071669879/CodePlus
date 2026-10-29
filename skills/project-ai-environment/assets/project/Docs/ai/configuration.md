@@ -93,10 +93,10 @@ rules.json 的 sources 将规则 id 指向唯一文档，正文使用对应 ai-r
 | 子命令 | 用途 | 退出码 |
 | --- | --- | --- |
 | `check --contract <相对路径>` | 校验章节、机器块、禁止项、`[Rewrite]` 内的 public 类型与 `golden` 比较；`--json` 输出结构化结果 | 0 通过；1 违规；2 契约或参数不合法，或 `deferred_gate` 未验证 |
-| `baseline --paths <相对路径>...` | 从工作树提取 public 类型并生成清单；`--out` 写入文件，否则打印到标准输出 | 0 完成；2 参数不合法 |
+| `baseline --paths <相对路径>...` | 从工作树提取 public 类型并生成清单；`--out` 写入文件，否则打印到标准输出 | 0 完成；2 参数不合法或源文件不可读 |
 | `selftest` | 在临时目录构造通过、违规、基准与延后门禁用例，自检判定器 | 0 自检通过；断言失败非零 |
 
-退出码语义固定为 `0` 通过、`1` 违规、`2` 用法或配置错误以及未验证；`2` 不能当作通过，也不能用解释性输出替代退出码。`deferred_gate` 为 `true` 且无其它违规时，`check` 的 status 是 `unverified`、退出码为 `2`，表示延后的收口门禁尚未运行，任务不算完成；`[Gate]` 必须写明 `deferred until <收口门禁>`，不得保留模板占位符。
+退出码语义固定为 `0` 通过、`1` 违规、`2` 用法或配置错误以及未验证；`2` 不能当作通过，也不能用解释性输出替代退出码。扫描 public 类型时遇到不可读或不可解码的源文件同样返回 `2`，且不产生部分清单——残缺基线不得伪装成成功。`deferred_gate` 为 `true` 且无其它违规时，`check` 的 status 是 `unverified`、退出码为 `2`，表示延后的收口门禁尚未运行，任务不算完成；`[Gate]` 必须写明 `deferred until <收口门禁>`，不得保留模板占位符。
 
 初始化只复制上述文件；随包的 `public-type-baseline.txt` 仅含两行注释，不含源码类型。初始化后由维护者在项目根显式运行 `python tools/ai/contract_check.py baseline --paths <源码根> --out Docs/ai/public-type-baseline.txt` 生成真实清单；脚本不猜测类型，空清单会把 `[Rewrite]` 范围内的既有类型全部报为 unexpected，因此该项检查以已生成的清单为前提。
 

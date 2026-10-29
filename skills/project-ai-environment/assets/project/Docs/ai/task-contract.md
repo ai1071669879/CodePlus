@@ -47,9 +47,9 @@ python tools/ai/contract_check.py baseline --paths <模块根> <模块根> --out
 python tools/ai/contract_check.py check --contract Tasks/<task>-contract.md
 ```
 
-退出码：`0` 通过；`1` 违规（含 `task` 未在 `Tasks/index.json` 登记）；`2` 契约本身不合法，或 `deferred_gate=true` 且无违规——**未验证不是通过**，延后的收口门禁未运行前任务不算完成。**契约检查是任务的第一道门禁，不替代构建、测试与独立验证。**
+退出码：`0` 通过；`1` 违规（含 `task` 未在 `Tasks/index.json` 登记）；`2` 契约本身不合法、public 类型扫描遇到不可读/不可解码的源文件（拒绝生成部分基线），或 `deferred_gate=true` 且无违规——**未验证不是通过**，延后的收口门禁未运行前任务不算完成。**契约检查是任务的第一道门禁，不替代构建、测试与独立验证。**
 
-已知边界（工具不判定，须人工核对）：只扫描 `rewrite_paths`，`[Rewrite]` 之外的改动不可见，用 `git status` 与交付清单核对改动集；`bin`/`obj` 等排除目录不扫描；非 UTF-8 文件跳过并记录 warning；`keep_paths` 不得与 `rewrite_paths` 重叠（重叠即契约错误）；`public_type_baseline.txt` 由维护者刷新，工具无法区分刷新前后，基准变动须单独审阅。
+已知边界（工具不判定，须人工核对）：只扫描 `rewrite_paths`，`[Rewrite]` 之外的改动不可见，用 `git status` 与交付清单核对改动集；`bin`/`obj` 等排除目录不扫描；`[Rewrite]` 范围内 public 类型扫描遇到不可读或不可解码的 `.cs` 直接返回 `2`，禁止用部分扫描结果生成基线；禁止项扫描遇到不可读文件只记 warning；`keep_paths` 不得与 `rewrite_paths` 重叠（重叠即契约错误）；`public_type_baseline.txt` 由维护者刷新，工具无法区分刷新前后，基准变动须单独审阅。
 
 ## 模板
 

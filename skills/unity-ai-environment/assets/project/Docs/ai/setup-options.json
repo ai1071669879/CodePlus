@@ -1,0 +1,231 @@
+{
+  "schema_version": 1,
+  "tools": [
+    {
+      "id": "unity-editor-cli",
+      "name": "Unity 官方 CLI",
+      "summary": "终端驱动 Unity；配合 Pipeline 操作已打开的 Editor。",
+      "features": [
+        "工程/Editor 管理",
+        "场景、资源、测试与项目自定义命令",
+        "可选官方 MCP 模式"
+      ],
+      "prerequisites": [
+        "固定 CLI 与 Pipeline 版本",
+        "目标 Editor 与工程身份核对"
+      ],
+      "setup": "Docs/ai/unity-tooling.md#unity-cli"
+    },
+    {
+      "id": "unity-editor-mcp",
+      "name": "CoplayDev unity-mcp",
+      "summary": "面向日常场景、脚本、资源与测试的 MCP 桥接。",
+      "features": [
+        "场景与 GameObject",
+        "脚本、资产、测试、性能与构建",
+        "按实际工具组加载"
+      ],
+      "prerequisites": [
+        "固定 Python/uv、服务端和 Editor 包版本",
+        "MCP 客户端及握手"
+      ],
+      "setup": "Docs/ai/unity-tooling.md#coplay"
+    },
+    {
+      "id": "unity-editor-anklebreaker",
+      "name": "AnkleBreaker unity-mcp-server",
+      "summary": "覆盖专业子系统并支持多工程、多代理路由的 MCP 桥接。",
+      "features": [
+        "场景、资源、构建与性能",
+        "Shader Graph、地形、物理、NavMesh、动画",
+        "按需高级工具、MPPM/ParrelSync 与每 Editor 队列"
+      ],
+      "prerequisites": [
+        "Node.js 与固定 server/plugin 修订",
+        "专业功能对应 Unity 包",
+        "目标工程/实例和端口核对"
+      ],
+      "setup": "Docs/ai/unity-tooling.md#anklebreaker"
+    },
+    {
+      "id": "unity-skills-rest",
+      "name": "Unity Skills REST API",
+      "summary": "Harness 模式的强制 Editor 执行依赖；原生模式也可显式选择。",
+      "features": [
+        "编译、测试、日志与场景验证",
+        "任务快照与受控回滚",
+        "按角色划分 API 模块"
+      ],
+      "prerequisites": [
+        "固定 Unity Skills 版本",
+        "真实 REST 服务与 Python helper",
+        "实际工程身份及必需模块验证"
+      ],
+      "setup": "Docs/ai/workflow.md#harness-setup"
+    },
+    {
+      "id": "unity-harness-init",
+      "name": "unity-harness-init",
+      "summary": "安装上游 Copilot 工作流角色、prompt、skill 与模板。",
+      "features": [
+        "Planner/Developer/Reviewer/Coordinator",
+        "TDD 与独立交叉模型评审",
+        "迭代进度、快照与维护窗口"
+      ],
+      "prerequisites": [
+        "固定 npm 版本；本次配方依据 0.1.4",
+        "安装变更预览及 .github 冲突合并"
+      ],
+      "setup": "Docs/ai/workflow.md#harness-setup"
+    },
+    {
+      "id": "copilot-cli",
+      "name": "GitHub Copilot CLI",
+      "summary": "Harness 模式的 /fleet 执行宿主。",
+      "features": [
+        "/fleet 并行轨道",
+        "自包含任务与文件分区",
+        "不同模型系列的开发/评审"
+      ],
+      "prerequisites": [
+        "可用账号与已核验 CLI 版本",
+        "/fleet 与所需模型权限"
+      ],
+      "setup": "Docs/ai/workflow.md#harness-setup"
+    },
+    {
+      "id": "secret-scan",
+      "name": "Gitleaks",
+      "summary": "显式本地范围内的密钥扫描与脱敏报告。",
+      "features": [
+        "显式本地范围内的密钥扫描与脱敏报告。"
+      ],
+      "prerequisites": [
+        "来源、固定版本、许可和最小功能验证"
+      ],
+      "setup": "Docs/ai/tool-integrations.md"
+    },
+    {
+      "id": "mcp-inspector",
+      "name": "MCP Inspector",
+      "summary": "核对 MCP 协议、工具清单和最小只读调用。",
+      "features": [
+        "核对 MCP 协议、工具清单和最小只读调用。"
+      ],
+      "prerequisites": [
+        "来源、固定版本、许可和最小功能验证"
+      ],
+      "setup": "Docs/ai/tool-integrations.md"
+    },
+    {
+      "id": "semantic-navigation",
+      "name": "Serena",
+      "summary": "语言后端支持的定义/引用语义导航。",
+      "features": [
+        "语言后端支持的定义/引用语义导航。"
+      ],
+      "prerequisites": [
+        "来源、固定版本、许可和最小功能验证"
+      ],
+      "setup": "Docs/ai/tool-integrations.md"
+    },
+    {
+      "id": "library-docs",
+      "name": "Context7",
+      "summary": "按固定外部库及版本查文档。",
+      "features": [
+        "按固定外部库及版本查文档。"
+      ],
+      "prerequisites": [
+        "来源、固定版本、许可和最小功能验证"
+      ],
+      "setup": "Docs/ai/tool-integrations.md"
+    },
+    {
+      "id": "spec-delta",
+      "name": "OpenSpec",
+      "summary": "增量需求变更与归档，复用现有任务 ID。",
+      "features": [
+        "增量需求变更与归档，复用现有任务 ID。"
+      ],
+      "prerequisites": [
+        "来源、固定版本、许可和最小功能验证"
+      ],
+      "setup": "Docs/ai/tool-integrations.md"
+    },
+    {
+      "id": "unity-tests",
+      "name": "Unity Test Framework",
+      "summary": "在既有测试程序集运行 EditMode/PlayMode，并保存 NUnit 报告。",
+      "features": [
+        "EditMode/PlayMode 测试",
+        "真实进程退出码与 NUnit 结果"
+      ],
+      "prerequisites": [
+        "目标 Editor 兼容的 Test Framework 版本",
+        "既有测试程序集及真实运行入口"
+      ],
+      "setup": "Docs/ai/unity-tooling.md"
+    },
+    {
+      "id": "unity-performance",
+      "name": "Unity Performance Testing",
+      "summary": "采集性能样本并按可比环境验证已登记预算。",
+      "features": [
+        "热身与重复采样",
+        "归一化性能预算和同环境基线对比"
+      ],
+      "prerequisites": [
+        "兼容的 Performance Testing 包",
+        "真实设备/构建/场景与项目预算"
+      ],
+      "setup": "Docs/ai/unity-tooling.md"
+    },
+    {
+      "id": "unity-analyzers",
+      "name": "Microsoft.Unity.Analyzers",
+      "summary": "Unity C# 分析器诊断，使用实际 SARIF 证据。",
+      "features": [
+        "Unity C# 分析器诊断，使用实际 SARIF 证据。"
+      ],
+      "prerequisites": [
+        "来源、固定版本、许可和最小功能验证"
+      ],
+      "setup": "Docs/ai/unity-tooling.md"
+    },
+    {
+      "id": "unity-asset-merge",
+      "name": "UnityYAMLMerge",
+      "summary": "受控场景/Prefab 文本冲突合并。",
+      "features": [
+        "受控场景/Prefab 文本冲突合并。"
+      ],
+      "prerequisites": [
+        "来源、固定版本、许可和最小功能验证"
+      ],
+      "setup": "Docs/ai/unity-tooling.md"
+    }
+  ],
+  "workflows": [
+    {
+      "id": "native",
+      "name": "原生项目流程",
+      "summary": "沿用现有契约、风险分级、Tasks 与按需协作。",
+      "required_tools": [],
+      "state_source": "Tasks/index.json",
+      "guide": "Docs/ai/workflow.md"
+    },
+    {
+      "id": "unity-harness-init",
+      "name": "Unity Harness 长期迭代模式",
+      "summary": "上游规定的发现、规划、/fleet TDD、独立交叉模型评审和维护窗口；缺依赖时阻塞。",
+      "required_tools": [
+        "unity-skills-rest",
+        "unity-harness-init",
+        "copilot-cli"
+      ],
+      "state_source": "docs/harness/progress.md",
+      "guide": "Docs/ai/workflow.md"
+    }
+  ]
+}

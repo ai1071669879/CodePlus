@@ -1,17 +1,18 @@
-# skills/ · 项目级 AI 环境生成器
+# skills/ · 项目技能
 
-两个自包含 skill（Python 3.10+ 标准库，无外部依赖）。它们不是"提示词模板"，而是**生成器**：
-在目标项目里落地一套可直接运行的项目级 AI 环境（规则、身份/权限、导航、任务、门禁、契约与检查器）。
+本目录包含两个自包含的 Python 3.10+ 标准库项目 AI 环境生成器（无外部依赖）和一个设计模式知识 skill。前两个 skill 在目标项目里落地一套可直接运行的项目级 AI 环境（规则、身份/权限、导航、任务、门禁、契约与检查器）；design-patterns 提供面向对象设计模式的选型与评审参考。
 
 | skill | 适用项目 | 产物要点 |
 | --- | --- | --- |
 | [project-ai-environment/](project-ai-environment/) | 任意通用项目 | `AGENTS.md` 核心入口、`Docs/ai/` 规则与配置、`tools/ai/` 检查器、意图契约、文档权威登记、产物基准 |
 | [unity-ai-environment/](unity-ai-environment/) | Unity 工程 | 通用底座 + Unity 专属规则（资源/.meta、程序集/依赖、策划源表、设备验收、`unity_checks.py`） |
+| [design-patterns/](design-patterns/) | C#/.NET 面向对象设计 | 26 种经典 OO 模式、模式选型与反模式参考 |
 
 ## 什么时候触发
 
-- 「初始化 / 迁移 / 收敛项目的 AI 工作环境」「生成团队规则和检查工具」「接 CI 的 AI 门禁」。
-- **普通功能开发不触发**：两个 skill 的 `description` 都明确排除日常编码任务。
+- 「初始化 / 迁移 / 收敛项目的 AI 工作环境」「生成团队规则和检查工具」「接 CI 的 AI 门禁」触发前两个环境技能。
+- 模式选择、面向对象重构或设计评审时触发 `design-patterns`。
+- **普通功能开发不触发环境生成器**：两个环境 skill 的 `description` 都明确排除日常编码任务。
 
 ## 生成物的关键机制（project-ai-environment）
 
@@ -26,13 +27,13 @@
 ## 来源与镜像关系
 
 - **唯一维护处是 `~/.codex/skills/<name>/`**；本目录是 live 的镜像，由
-  `tools/sync-config.ps1` 用 robocopy `/MIR` 覆盖（排除 `__pycache__`、`.pytest_cache`）。
-- 要改 skill：改 `~/.codex/skills/<name>/`，跑 `sync-config.ps1`，不要只改这里。
-- 新机器安装：`tools/install-codex-env.ps1 -Apply` 会把本目录两个 skill 装到 `~/.codex/skills/`。
+  `tools/sync-skills.ps1` 用 robocopy `/MIR` 覆盖（排除 `__pycache__`、`.pytest_cache`）。
+- 要改 skill：改 `~/.codex/skills/<name>/`，跑 `sync-skills.ps1`，不要只改这里。
+- 新机器安装：`tools/install-skills.ps1 -Apply` 会把本目录收录的 skill 装到 `~/.codex/skills/`。
 
 ## 自检
 
-改动 skill 后，在 skill 目录逐个跑其自带测试（入口是 `--skill` 参数的脚本，不是 pytest）：
+两个环境生成器改动后，在其 skill 目录逐个跑自带测试（入口是 `--skill` 参数的脚本，不是 pytest）；design-patterns 没有测试运行器，检查链接与元数据：
 
 ```powershell
 cd skills\project-ai-environment

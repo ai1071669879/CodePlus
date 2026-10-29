@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/logo.png" width="128" alt="CodePlus logo">>
+  <img src="assets/logo.png" width="128" alt="CodePlus logo">
   <h1>CodePlus</h1>
   <p><strong>把「AI 怎么参与工程」变成可版本化、可验证、可重建的资产</strong></p>
   <p>
@@ -12,7 +12,7 @@
 </div>
 
 > **两个模块，严格分离：**
-> Codex 全局环境（`codex/` + `docs/`）与项目级 AI 环境技能（`skills/`）互不引用——
+> Codex 全局环境（`codex/` + `docs/`）与项目技能（`skills/`）互不引用——
 > 全局指南不出现 skill，skill 文档不出现全局协调层、`agents/*.toml` 或全局 AGENTS.md。
 > 需要跨模块协同时，由仓库索引（本文件）负责指路，而不是让两边互相渗透。
 
@@ -26,7 +26,7 @@ CodePlus 存放的不是可运行产品，而是**工程环境本身**：换机�
 - **双向同步**：live → 仓库快照（`sync-*`）、仓库 → live 安装（`install-*`），两侧写入前都有备份。
 - **机器判定**：19 条跨文件规则 + 4 项附加检查（TOML 占位符 / 指南纯度 / 实证表述 / 版本日期），不靠"看起来对"。
 - **一条命令自检**：`verify-repo.ps1` 覆盖 BOM、可编译、字节码残留、文档链接、快照一致、安装计划、哈希对齐。
-- **两个项目技能自包含**：初始化项目 AI 环境（契约、文档权威、产物基准、检查器），自带 9 / 11 个测试。
+- **项目技能自包含**：两个环境生成器初始化项目 AI 环境（契约、文档权威、产物基准、检查器），自带 9 / 11 个测试；design-patterns 提供 26 种经典面向对象模式的选型与评审知识。
 - **收益有据可查**：多 Agent 方案的收益分析与其复现脚本一并入库（`docs/` + `tools/analysis/`）。
 
 ## 🧩 两个严格分离的模块
@@ -34,9 +34,9 @@ CodePlus 存放的不是可运行产品，而是**工程环境本身**：换机�
 | 模块 | 内容 | 目录 | 同步（live → 仓库） | 安装（仓库 → live） |
 | --- | --- | --- | --- | --- |
 | **Codex 全局环境** | 全局协调层、五个子代理、配置指南、一致性规则 | [`codex/`](codex/) · [`docs/`](docs/CODEX-SETUP.md) | `tools/sync-config.ps1` | `tools/install-codex-env.ps1` |
-| **项目 AI 环境技能** | `project-ai-environment`（通用）· `unity-ai-environment`（Unity） | [`skills/`](skills/) | `tools/sync-skills.ps1` | `tools/install-skills.ps1` |
+| **项目技能** | 两个 AI 环境生成器与 `design-patterns`（C#/.NET 面向对象设计模式选型与评审，26 patterns） | [`skills/`](skills/) | `tools/sync-skills.ps1` | `tools/install-skills.ps1` |
 
-**边界约定**：`docs/CODEX-SETUP.md` 与 `codex/` 只讲全局环境；`skills/` 只讲项目级环境。
+**边界约定**：`docs/CODEX-SETUP.md` 与 `codex/` 只讲全局环境；`skills/` 只讲项目技能。
 任何跨模块内容都属于仓库索引或工具脚本，不写进任一模块的规则正文。
 
 ## 🚀 快速开始
@@ -66,7 +66,9 @@ powershell -NoProfile -File D:\ProjRx\CodePlus\tools\install-skills.ps1 -Apply
 - 通用项目：`skills/project-ai-environment` — 生成 `Docs/ai/` 规则、意图契约、文档权威、产物基准与 `tools/ai/contract_check.py`。
 - Unity 工程：`skills/unity-ai-environment` — 通用底座 + Unity 专属验收（资源/.meta、程序集、策划源表、设备）。
 
-两个技能都随包自带资产与测试，初始化后跑 `python tools/ai/check_env.py check` 验证。
+两个环境生成器都随包自带资产与测试，初始化后跑 `python tools/ai/check_env.py check` 验证。
+
+- 设计评审：`skills/design-patterns/` — 26 种经典面向对象设计模式的选型与评审，并提供反模式参考。
 
 ## 📂 目录结构
 
@@ -82,7 +84,8 @@ CodePlus/
 │   └── agents/*.toml              ← 五个正式子代理文件（= ~/.codex/agents/*.toml）
 ├── skills/
 │   ├── project-ai-environment/    ← 通用项目 AI 环境生成器
-│   └── unity-ai-environment/      ← Unity 项目 AI 环境生成器
+│   ├── unity-ai-environment/      ← Unity 项目 AI 环境生成器
+│   └── design-patterns/            ← C#/.NET 面向对象设计模式选型与评审
 └── tools/
     ├── sync-config.ps1  install-codex-env.ps1    ← 全局环境双向
     ├── sync-skills.ps1  install-skills.ps1       ← 项目技能双向
@@ -110,7 +113,7 @@ python -X utf8 D:\ProjRx\CodePlus\tools\check-consistency.py           # 跨文�
 | 5 | live → 指南快照一致 | 改了 live 未同步 |
 | 6 | 仓库 → live 安装计划为空 | 仓库比 live 新，需安装 |
 | 7 | `codex/` 与本机哈希一致 | 快照过期 |
-| 8 | 两个 skill 双向一致 | 技能漂移 |
+| 8 | 仓库技能双向一致 | 技能漂移 |
 
 > **它依赖本机 `~/.codex`。** 新克隆/新机器请先 `install-* -Apply` 再验证；
 > 不要把它接进没有 live 配置的 CI（必然红）。
