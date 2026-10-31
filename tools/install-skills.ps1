@@ -1,5 +1,5 @@
 ﻿<#
-install-skills.ps1 —— 把 CodePlus 仓库收录的项目技能装到本机（仓库 -> live）。
+install-skills.ps1 —— 把本仓库收录的项目技能装到本机（仓库 -> live）。
 
 与 Codex 全局环境完全分开：只写 `~/.codex/skills/<name>/`，不碰 AGENTS.md / agents / config.toml。
 全局环境安装用 tools/install-codex-env.ps1。
@@ -17,7 +17,7 @@ $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
 $home_dir = $env:USERPROFILE
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-$backup_root = Join-Path $home_dir ".codex-backups\$stamp-codeplus-skills"
+$backup_root = Join-Path $home_dir ".codex-backups\$stamp-codex-env-skills"
 
 function Get-TreeHash([string]$directory) {
     if (-not (Test-Path $directory)) { return '' }

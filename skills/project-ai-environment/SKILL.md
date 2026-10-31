@@ -70,6 +70,21 @@ C1–C5 已随初始化部署：[行为评测与架构约束](assets/project/Doc
 
 C6 Serena、C7 Context7、C8 OpenSpec 为按需接入，全部复用 profile.capabilities，不另建工具/任务状态表。先核来源、固定版本、许可和数据边界；本包不安装第三方软件、不自动上传项目或执行任意接入命令。完整用法已在上述随包文档，无需另找模板。
 
+
+## 技能范围（项目级）
+
+Codex 会把**所有**已安装技能的名称+描述注入每个 Agent 的上下文；技能多时这是最大的固定开销。边界是：
+
+- **角色→技能集属于全局配置**：在 `~/.codex/AGENTS.md` 的 `Skills by role` 里维护（main/architect/mech/explorer/verifier/committer）。角色是全局对象，技能集也全局，不由项目配置。
+- **项目只声明本项目允许用哪些技能**：初始化时按项目内容挑出允许清单，运行 `python <skill-dir>/scripts/skill_scope.py --project <root> --skills <names> --write`：
+  - 写 `.codex/config.toml` 的 `[skills] include_instructions = false`（关闭全量目录注入）；
+  - 写 `Docs/ai/skill-scope.json`（项目允许清单，记录 scope=project/global 与实际路径）；
+  - 把打印的 `## Skills (project allowlist)` 段粘贴进项目 `AGENTS.md`。
+- 后续按开发进度增减清单后重跑 `--write`；交付前用 `--check` 核对。
+- 项目技能（`.codex/skills/<name>`）优先于全局同名技能，并记录为 `scope=project`。
+
+细节见 [技能范围说明](references/skill-scope.md)。
+
 ## 交付
 
 列出生成/合并/冲突文件、仍未配置的事实、身份来源、检查命令/退出码、平台加载和 CI 执行状态。不得把“文件存在”“audit 报告”说成已认证或已强制阻断。无需修改全局模型、沙箱、插件、代理角色、Git 分支或服务端设置。

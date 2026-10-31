@@ -1,29 +1,18 @@
 #!/usr/bin/env python3
-"""check-consistency.py —— 全局规则 vs agent 文件 / 指南 的一致性检查。
+"""check-consistency.py —— live 规则层与指南/模板的一致性检查。
 
 用途
 ----
-同一套规则写在四处（全局 AGENTS.md、四个 agents/*.toml、配置指南）。
-改一处忘改另一处，就会出现「全局说 A、agent 说 B」——子代理按 B 执行，
-全局规则的保护被抵消。
+规则只保留「不可读、不可验」的少数几条；其余约束由仓库里的脚本与文件承担
+（写域互斥、门禁、报告字段、brief 形状）。本脚本只检查两件事：
 
-本脚本把这类规则登记成表，一条命令扫出所有不一致。
+1. 少量不变量在 live 与指南中一致：三条不变量 / 停而非猜 / 设计归属 /
+   机器事实 / 委派指针。
+2. 规则层体积不回升：行数预算（AGENTS.md、DELEGATION.md、agents/*.toml）。
 
-用法
-----
-    python -X utf8 check-consistency.py            # 只报问题
-    python -X utf8 check-consistency.py -v         # 详细
-    python -X utf8 check-consistency.py --only 测试量
+另有 6 项附加检查（体积预算 / 层边界 / toml 占位符 / 指南纯度 / 实证表述 / 版本日期），见 main()。
 
-退出码：0 = 一致；1 = 发现不一致（可接 CI 或提交前钩子）
-
-设计要点
---------
-1. 「已作废说法」不能简单搜字符串——它合法地出现在**禁止清单**、
-   **历史注记**、**对比表**里。所以每条 deprecate 规则都带 `guard`：
-   命中行附近出现守卫词（never/superseded/已废弃…）时视为合法引用。
-2. 「必需说法」检查的是**存在性**：全局有、agent 也该有。
-3. 本脚本只读，不改任何文件。
+退出码：0 = 一致；1 = 发现不一致
 """
 from __future__ import annotations
 
@@ -84,218 +73,65 @@ class Rule:
 
 RULES: list[Rule] = [
     Rule(
-        key="test-volume",
-        title="测试量规则",
-        required=["review signal", "behaviour coverage"],
-        applies_to=("global", "agent:architect", "guide"),
+        key="invariants",
+        title="三条不变量（交付=门禁 / 单写者 / 事实在文件）",
+        required=["gate command exits 0", "one writer per path", "truth is in files"],
+        applies_to=("global", "guide"),
         require_all=True,
-        deprecate=[
-            r"cut it back",
-            r"more test lines than implementation",
-            r"one test case per ten",
-            r"keep tests proportionate",
-            r"leave the combinatorial explosion alone",
-            r"不得超实现行数",
-        ],
-        allow=["(superseded)", "已废弃", "已作废", "早期", "历史"],
-        why="按比例删测试会抵消行为覆盖；比例只能触发复查。",
+        deprecate=[r"the report is the record", r"delivery is the brief"],
+        allow=["(superseded)", "已废弃"],
+        why="交付定义、写域互斥、事实来源是全局唯一的硬不变量；两处文本必须一致。",
     ),
     Rule(
-        key="sandbox-modes",
-        title="沙箱模式数量",
-        required=["three sandbox modes", "danger-full-access"],
+        key="stop-not-guess",
+        title="停而非猜",
+        required=["stop instead of guessing"],
         applies_to=("global", "guide"),
-        deprecate=[r"only two sandbox modes", r"has only two modes", r"只有两种模式"],
-        allow=["(superseded)", "superseded", "已废弃", "已作废", "已被 §7"],
-        why="Codex 有三种模式；说成两种会误导读者以为 danger-full-access 不存在。",
+        require_all=True,
+        deprecate=[r"make a reasonable assumption", r"best guess"],
+        allow=["(superseded)", "已废弃"],
+        why="子代理缺上下文时编造，是返工的主要来源。",
     ),
     Rule(
-        key="network-default",
-        title="网络默认值",
-        required=["command network access", "deliberately"],
-        applies_to=("global", "guide"),
-        deprecate=[
-            r"sandbox does not disable network access by default",
-            r"is the sandbox default",
-        ],
-        allow=["(superseded)", "已废弃", "已作废", "早期"],
-        why="官方默认是关闭；写成默认开启会让人误判风险。",
-    ),
-    Rule(
-        key="design-ownership",
-        title="设计归属",
+        key="decision-ownership",
+        title="执行方不做设计决定",
         required=["do not make design decisions"],
-        applies_to=("agent:architect",),
-        deprecate=[
-            r"you own the design",
-            r"design decisions within an assigned slice",
-            r"settles the design for a slice and then implements",
-        ],
-        allow=["(superseded)", "已废弃", "已作废", "早期"],
-        why="设计归主线程；architect 只实现已定设计。",
-    ),
-    Rule(
-        key="worktree-boundary",
-        title="worktree 边界措辞",
-        required=["working-copy isolation"],
-        applies_to=("global",),
-        deprecate=[
-            r"genuinely hard boundary",
-            r"isolated from the primary workspace by construction",
-        ],
-        allow=["(superseded)", "已废弃", "已作废", "早期"],
-        why="目录分离只是工作副本隔离，不是安全边界。",
-    ),
-    Rule(
-        key="observation-vs-advice",
-        title="观察 vs 建议",
-        required=["report observations, never advice"],
-        applies_to=("agent:architect", "agent:mech", "agent:explorer", "agent:verifier"),
-        deprecate=[r"feel free to suggest", r"you may recommend"],
-        why="禁的是建议，不是信息；阻塞与带指向的观察必须上报。",
-    ),
-    Rule(
-        key="contract-shapes",
-        title="契约形状",
-        required=["rule brief", "question brief", "full brief"],
-        applies_to=("global",),
+        applies_to=("agent:architect", "agent:mech", "agent:explorer",
+                    "agent:verifier", "agent:committer"),
         require_all=True,
-        deprecate=[r"none may be omitted"],
-        allow=["(superseded)", "已废弃", "已作废", "早期"],
-        why="契约按执行者职责裁剪；一刀切 12 字段对简单任务是纯开销。",
+        deprecate=[r"you own the design", r"decide the structure"],
+        allow=["(superseded)", "已废弃"],
+        why="五个子代理各自读自己的 toml；谁都不许替主线程做设计决定。",
     ),
     Rule(
-        key="delegation-decision-content",
-        title="委派决策内容保留，收益描述移除",
-        # 决策内容必须在：硬性否决、六问、预算、派给谁、校准
-        required=["Hard negatives", "six questions", "Budget", "Which agent", "Calibration"],
-        applies_to=("global",),
+        key="machine-facts",
+        title="沙箱档位与网络默认（事实）",
+        required=["danger-full-access", "command network access"],
+        applies_to=("global", "guide"),
         require_all=True,
-        # 收益描述不得回来：成本表、收益表、收益问句、交易vs门槛
-        deprecate=[r"Delegation is a trade",
-                   r"net-benefit test",
-                   r"Would delegating save",
-                   r"costs, and they are paid",
-                   r"at `xhigh` prices"],
-        allow=["(superseded)", "已废弃", "早期"],
-        why="决策内容（硬性否决/六问/预算/查表/校准）是判断依据，必须保留；"
-            "成本表、收益表与「省下的多于花掉的」这类收益描述已移除。",
+        deprecate=[r"only two sandbox modes", r"has only two modes", r"只有两种模式"],
+        allow=["(superseded)", "已废弃", "已作废"],
+        why="三种模式、网络默认关闭是事实；写错会误导风险判断。",
     ),
     Rule(
-        key="readonly-brief",
-        title="只读/机械 agent 知道收到短契约",
-        required=["the brief you receive is short"],
-        applies_to=("agent:mech", "agent:explorer"),
-        why="否则它们会把精简契约当成 brief 不完整而误报 blocked。",
-    ),
-    Rule(
-        key="scope-statement",
-        title="文档范围声明",
-        required=["调度决策", "不含"],
-        applies_to=("guide",),
+        key="delegation-pointer",
+        title="委派剧本单独成文，主线程按需读",
+        required=["DELEGATION.md"],
+        applies_to=("global", "guide"),
         require_all=True,
-        # 声明里不得再出现与实际内容矛盾的排除项
-        deprecate=[r"不含收益分析", r"不含性能数据"],
-        why="开头声明「不含收益分析」会误导读者，而文档已含完整的委派收益判断体系。",
-    ),
-    Rule(
-        key="guide-version",
-        title="指南版本日期不早于最后修改",
-        # 存在性由本规则检查；日期比较在 check_guide_version 中做（看 live 配置的 mtime）
-        required=["**版本**"],
-        applies_to=("guide",),
-        why="版本日期落后于内容会让读者以为是旧版。",
-    ),
-    Rule(
-        key="acceptance-ambiguity",
-        title="验收措辞不歧义",
-        required=["final accept/reject decision", "does not ban the `[Acceptance]` field"],
-        applies_to=("global",),
-        require_all=True,
-        deprecate=[r"Acceptance or credentials are involved",
-                   r"涉及验收或凭据"],
-        allow=["(superseded)", "已废弃", "早期"],
-        why="说成「涉及验收就不派」会被字面读成禁止所有 architect 委派；"
-            "禁的是最终决策权，不是 brief 里的验收标准。",
-    ),
-    Rule(
-        key="template-copyable",
-        title="配置模板可直接保存使用",
-        required=["本文件可以直接保存使用", "已注释"],
-        applies_to=("guide",),
-        require_all=True,
-        # 不得再声称"需替换"（那是"改完才可用"，不是可直接使用）
-        deprecate=[r"尖括号占位符需替换为你自己的值"],
-        allow=["(superseded)", "已废弃", "早期"],
-        why="模板里有未注释的占位符时，直接复制会写进一份无效配置；"
-            "依赖个人路径的段落应注释掉，并说明可直接保存。",
+        deprecate=[],
+        allow=[],
+        why="委派细则不再注入每个线程；指针必须在，正文在 DELEGATION.md。",
     ),
     Rule(
         key="guide-sync-entry",
         title="指南指向同步入口",
         required=["sync-config.ps1"],
-        applies_to=("global",),
-        deprecate=[r"by hand and hope"],
-        why="改了配置不同步，子代理会按旧规则执行；必须有明确入口。",
-    ),
-    Rule(
-        key="size-metric",
-        title="规模只作信号，不作指标",
-        required=["Never aim at a size", "measure executable lines"],
-        applies_to=("global",),
+        applies_to=("guide",),
         require_all=True,
-        # 这些措辞把行数/文件数变成了可执行的门限
-        deprecate=[r"more than about a dozen files",
-                   r"no file exceeds N lines",
-                   r"lines of code limit",
-                   r"under \d+ lines per (file|method)"],
-        allow=["(superseded)", "已废弃", "早期"],
-        why="行数一旦成为指标，最省事的达标方式就是压行、删注释、拆碎，直接损害可读性；"
-            "且文件行数含空行与注释，不代表逻辑量。",
-    ),
-    Rule(
-        key="no-line-budget",
-        title="agent 文件不得设行数上限",
-        required=["line budget"],
-        applies_to=("agent:architect",),
-        deprecate=[r"no file exceeds N lines",
-                   r"exceeds N lines",
-                   r"under N lines"],
-        allow=["(superseded)", "已废弃", "早期"],
-        why="把行数写成上限会诱导压行、删注释、拆碎文件，直接损害可读性。",
-    ),
-    Rule(
-        key="verdict-taxonomy",
-        title="状态判定三分",
-        required=["decided by cause"],
-        applies_to=("global",),
-        deprecate=[r"without command output it must be\n?\s*`?unverified`?\.?\*?\*?$"],
-        allow=["(superseded)", "已废弃", "已作废", "早期"],
-        why="failed/blocked/unverified 按成因判，不能一律 unverified。",
-    ),
-    Rule(
-        key="commit-gate",
-        title="提交门禁",
-        required=["Every commit goes through", "Commit brief", "diff gate",
-                  "gate applicability", "not required", "S0", "S1"],
-        applies_to=("global",),
-        require_all=True,
-        deprecate=[r"main thread commits", r"main thread may commit"],
-        allow=["(superseded)", "已废弃", "已作废", "早期"],
-        why="提交是最后一道门；主线程直接提交会绕开 committer 的 diff 分级。",
-    ),
-    Rule(
-        key="committer-audit",
-        title="committer 定义与档位",
-        required=["`committer` | `gpt-6.1-sol` @ `medium`"],
-        applies_to=("global", "agent:committer"),
-        require_all=True,
-        scoped_required={
-            "agent:committer": ["verdict", "S0", "S1", "risk_findings",
-                                "must not modify source", "out_of_scope",
-                                "gate_applicability", "not required"],
-        },
-        why="Roles 表必须按 medium 档登记 committer；正文缺审计字段则分级与门禁无法执行。",
+        deprecate=[],
+        allow=[],
+        why="改 live 后必须同步快照；指南要指向那条命令。",
     ),
 ]
 
@@ -307,8 +143,9 @@ def read_text(path: str) -> str:
 
 
 def load_sources() -> dict[str, str]:
-    src = {"global": read_text(GLOBAL_MD), "guide": read_text(GUIDE),
-           "templates": read_text(TEMPLATES)}
+    src = {"global": read_text(GLOBAL_MD),
+           "delegation": read_text(os.path.join(CODEX, "DELEGATION.md")),
+           "guide": read_text(GUIDE), "templates": read_text(TEMPLATES)}
     for n in AGENT_NAMES:
         p = os.path.join(AGENTS_DIR, n + ".toml")
         try:
@@ -349,8 +186,12 @@ def check_guide_purity(src: dict[str, str]) -> list[str]:
         if not txt:
             continue
         for term in PROJECT_TERMS:
-            for m in re.finditer(re.escape(term), txt):
+            for m in re.finditer(re.escape(term), txt, re.I):
                 ln = txt[:m.start()].count("\n") + 1
+                line = txt.split("\n")[ln - 1]
+                # 本仓库自身的绝对路径含 ProjRx，不是项目专名泄漏。
+                if "CodePlus" in line:
+                    continue
                 problems.append(f"{scope} L{ln}: 含项目专名 {term!r}")
         for pat in PROJECT_MEASURES:
             for m in re.finditer(pat, txt):
@@ -482,6 +323,67 @@ def check_toml_blocks(src: dict[str, str]) -> list[str]:
     return problems
 
 
+# ---- 规则层体积预算：让精简不可逆 -------------------------------------------
+# 规则总量只许持平或下降：要加一条，先删等量文本。超限时这里直接失败。
+BUDGET_LINES = {
+    "AGENTS.md": 80,          # 注入每线程的全局规则
+    "DELEGATION.md": 90,      # 主线程按需读的委派剧本
+    "agents/*.toml": 70,      # 每个子代理一读
+}
+
+
+def _count_lines(path: str) -> int:
+    return len(io.open(path, encoding="utf-8").read().splitlines())
+
+
+def check_rule_budget() -> list[str]:
+    """规则层行数预算，防止精简后重新长回去。"""
+    problems: list[str] = []
+    targets = [
+        ("AGENTS.md", GLOBAL_MD, BUDGET_LINES["AGENTS.md"]),
+        ("DELEGATION.md", os.path.join(CODEX, "DELEGATION.md"), BUDGET_LINES["DELEGATION.md"]),
+    ]
+    for name in AGENT_NAMES:
+        targets.append((f"agents/{name}.toml", os.path.join(AGENTS_DIR, name + ".toml"),
+                        BUDGET_LINES["agents/*.toml"]))
+    for label, path, cap in targets:
+        if not os.path.exists(path):
+            problems.append(f"budget: {label} 缺失（规则层不完整）")
+            continue
+        got = _count_lines(path)
+        if got > cap:
+            problems.append(f"budget: {label} {got} 行 > 上限 {cap} 行 —— 先删再加")
+    return problems
+
+
+# ---- 层边界：全局层不得引用项目布局、外部仓库名或绝对路径 ----
+# 边界规则（写进文档靠自觉，写进这里靠 exit 1）：
+#   Codex 全局层只描述 Codex 自身；项目具体布局由项目自己的 AGENTS.md 声明。
+BOUNDARY_PATTERNS = [
+    r"CodePlus", r"ProjRx", r"RxToolkits",           # 外部仓库/项目名
+    r"[A-Za-z]:\\",                                # 盘符绝对路径
+    r"\bTasks/", r"docs/ai", r"tools/ai",           # 项目侧布局
+    r"slice\.py", r"slices\.json", r"briefs/",     # 项目侧工具与状态文件
+]
+
+
+def check_layer_boundary() -> list[str]:
+    """全局层出现项目侧内容即越界：子代理会在无关项目里照着不存在的路径干活。"""
+    problems: list[str] = []
+    targets = [("AGENTS.md", GLOBAL_MD),
+               ("DELEGATION.md", os.path.join(CODEX, "DELEGATION.md"))]
+    targets += [(f"agents/{n}.toml", os.path.join(AGENTS_DIR, n + ".toml")) for n in AGENT_NAMES]
+    for label, path in targets:
+        if not os.path.exists(path):
+            continue
+        text = io.open(path, encoding="utf-8").read()
+        for pat in BOUNDARY_PATTERNS:
+            for m in re.finditer(pat, text):
+                ln = text[:m.start()].count("\n") + 1
+                problems.append(
+                    f"boundary: {label} L{ln} 越界引用 {m.group(0)!r} —— 项目侧内容放项目 AGENTS.md")
+    return problems
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="跨文件规则一致性检查")
     ap.add_argument("-v", "--verbose", action="store_true")
@@ -497,6 +399,7 @@ def main() -> int:
     print(f"  全局 AGENTS.md      {len(src['global']):>7,} 字符")
     for n in AGENT_NAMES:
         print(f"  agents/{n + '.toml':<18}{len(src['agent:' + n]):>7,} 字符")
+    print(f"  DELEGATION.md       {len(src.get('delegation', '')):>7,} 字符")
     print(f"  配置指南            {len(src['guide']):>7,} 字符")
     print(f"  模板                {len(src['templates']):>7,} 字符")
     print()
@@ -546,8 +449,10 @@ def main() -> int:
 
     print()
     print(f"  规则数: {len(RULES)} 条表内规则"
-          f"（另有 4 项附加检查：toml 占位符 / 指南纯度 / 实证表述 / 版本日期）")
+          f"（另有 6 项附加检查：体积预算 / 层边界 / toml 占位符 / 指南纯度 / 实证表述 / 版本日期）")
 
+    problems.extend(check_rule_budget())
+    problems.extend(check_layer_boundary())
     problems.extend(check_toml_blocks(src))
     problems.extend(check_guide_purity(src))
     problems.extend(check_no_empirical(src))
@@ -560,8 +465,9 @@ def main() -> int:
         for p in problems:
             print(f"  · {p}")
         print()
-        print("修法：先改全局 AGENTS.md（源头），再同步 agents/*.toml 与指南。")
-        print("      agents/*.toml 是实际发给子代理的那份——只改源头等于没改。")
+        print("修法：先改 live（~/.codex/AGENTS.md、DELEGATION.md、agents/*.toml），")
+        print("      再跑 tools/sync-config.ps1 同步指南与快照。")
+        print("      体积超限时先删，再加——规则总量只许持平或下降。")
     else:
         print("结论: 全部一致")
     print("=" * 88)

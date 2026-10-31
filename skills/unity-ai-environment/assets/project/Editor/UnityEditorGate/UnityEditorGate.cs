@@ -32,7 +32,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
-namespace CodePlus.AiEnvironment
+namespace UnityAiEnvironment
 {
     [InitializeOnLoad]
     internal static class UnityEditorGate

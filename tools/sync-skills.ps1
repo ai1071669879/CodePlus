@@ -1,5 +1,5 @@
 ﻿<#
-sync-skills.ps1 —— 把本机已安装且仓库收录的项目技能镜像进 CodePlus 仓库（live -> 仓库）。
+sync-skills.ps1 —— 把本机已安装且仓库收录的项目技能镜像进本仓库（live -> 仓库）。
 
 与 Codex 全局环境完全分开：本脚本只碰 `~/.codex/skills/<name>/` 与仓库 `skills/<name>/`。
 Codex 全局配置（AGENTS.md / agents / config.toml / 指南）不在这里处理，用 tools/sync-config.ps1。

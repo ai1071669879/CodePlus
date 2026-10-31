@@ -83,3 +83,17 @@ U2–U4 已提供 [Unity 验收工具与合同](assets/project/Docs/ai/unity-too
 交付前回读目标项目的实际 AGENTS.md，确认 `check` 的根入口报告 `core_matches=true` 且预算通过；预览或模板截图不能代替实际落盘结果。
 
 常见误区：把现有项目的资源管理器、Logger、配置 ID、工具菜单和热更方案当通用前提；把 Planner/TA 的目录权限当程序授权；把 Editor 采样或编译通过当目标设备验收。用真实能力登记、文件职责复核和分层验证纠正。
+
+## 技能范围（项目级）
+
+Codex 会把**所有**已安装技能的名称+描述注入每个 Agent 的上下文；技能多时这是最大的固定开销。边界是：
+
+- **角色→技能集属于全局配置**：在 `~/.codex/AGENTS.md` 的 `Skills by role` 里维护（main/architect/mech/explorer/verifier/committer）。角色是全局对象，技能集也全局，不由项目配置。
+- **项目只声明本项目允许用哪些技能**：初始化时按项目内容挑出允许清单，运行 `python <skill-dir>/scripts/skill_scope.py --project <root> --skills <names> --write`：
+  - 写 `.codex/config.toml` 的 `[skills] include_instructions = false`（关闭全量目录注入）；
+  - 写 `Docs/ai/skill-scope.json`（项目允许清单，记录 scope=project/global 与实际路径）；
+  - 把打印的 `## Skills (project allowlist)` 段粘贴进项目 `AGENTS.md`。
+- 后续按开发进度增减清单后重跑 `--write`；交付前用 `--check` 核对。
+- 项目技能（`.codex/skills/<name>`）优先于全局同名技能，并记录为 `scope=project`。
+
+细节见 [技能范围说明](references/skill-scope.md)。

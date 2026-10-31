@@ -1,7 +1,8 @@
 ﻿<#
-sync-config.ps1 —— 把本机 Codex **全局环境**快照进 CodePlus（live -> 仓库）。
+sync-config.ps1 —— 把本机 Codex **全局环境**快照进本仓库（live -> 仓库）。
 
-只管全局环境：docs/CODEX-SETUP.md、codex/AGENTS.global.md、codex/agents/*.toml。
+只管全局环境：docs/CODEX-SETUP.md、codex/AGENTS.global.md、codex/DELEGATION.md、
+codex/agents/*.toml。
 项目技能不在这里处理——用 tools/sync-skills.ps1（严格分离）。
 
 三步：
@@ -58,6 +59,7 @@ if (-not $SkipCodex) {
     }
     $rows = @()
     $rows += [pscustomobject]@{ File = 'codex/AGENTS.global.md'; State = (Copy-IfChanged (Join-Path $codex_dir 'AGENTS.md') (Join-Path $repo 'codex\AGENTS.global.md')) }
+    $rows += [pscustomobject]@{ File = 'codex/DELEGATION.md'; State = (Copy-IfChanged (Join-Path $codex_dir 'DELEGATION.md') (Join-Path $repo 'codex\DELEGATION.md')) }
     $agent_files | ForEach-Object {
         $rows += [pscustomobject]@{ File = "codex/agents/$($_.Name)"; State = (Copy-IfChanged $_.FullName (Join-Path $repo "codex\agents\$($_.Name)")) }
     }

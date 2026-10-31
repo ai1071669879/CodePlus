@@ -6,7 +6,7 @@
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" alt="License: Apache-2.0"></a>
     <img src="https://img.shields.io/badge/Codex-global%20environment-58a6ff.svg" alt="Codex global environment">
     <img src="https://img.shields.io/badge/skills-project%20AI%20environment-3fb950.svg" alt="Project AI environment skills">
-    <img src="https://img.shields.io/badge/tools-8%20scripts-8b949e.svg" alt="8 scripts">
+    <img src="https://img.shields.io/badge/tools-9%20scripts-8b949e.svg" alt="9 scripts">
     <img src="https://img.shields.io/badge/platform-Windows%20%2B%20Codex-8957e5.svg" alt="Platform">
   </p>
 </div>
@@ -24,7 +24,7 @@ CodePlus 存放的不是可运行产品，而是**工程环境本身**：换机�
 
 - **可版本化**：`~/.codex/AGENTS.md`、五个子代理 TOML、完整配置指南都进仓库，改动可 diff、可回溯。
 - **双向同步**：live → 仓库快照（`sync-*`）、仓库 → live 安装（`install-*`），两侧写入前都有备份。
-- **机器判定**：19 条跨文件规则 + 4 项附加检查（TOML 占位符 / 指南纯度 / 实证表述 / 版本日期），不靠"看起来对"。
+- **机器判定**：6 条跨文件规则 + 5 项附加检查（规则层体积预算 / TOML 占位符 / 指南纯度 / 实证表述 / 版本日期），不靠"看起来对"。
 - **一条命令自检**：`verify-repo.ps1` 覆盖 BOM、可编译、字节码残留、文档链接、快照一致、安装计划、哈希对齐。
 - **项目技能自包含**：两个环境生成器初始化项目 AI 环境（契约、文档权威、产物基准、检查器），自带 9 / 11 个测试；design-patterns 提供 26 种经典面向对象模式的选型与评审知识。
 - **收益有据可查**：多 Agent 方案的收益分析与其复现脚本一并入库（`docs/` + `tools/analysis/`）。
@@ -45,19 +45,19 @@ CodePlus 存放的不是可运行产品，而是**工程环境本身**：换机�
 
 ```powershell
 # 全局环境（先预览，再写入）
-powershell -NoProfile -File D:\ProjRx\CodePlus\tools\sync-config.ps1 -Preview
-powershell -NoProfile -File D:\ProjRx\CodePlus\tools\sync-config.ps1
+powershell -NoProfile -File <REPO_ROOT>\tools\sync-config.ps1 -Preview
+powershell -NoProfile -File <REPO_ROOT>\tools\sync-config.ps1
 
 # 项目技能（改了 ~/.codex/skills 之后）
-powershell -NoProfile -File D:\ProjRx\CodePlus\tools\sync-skills.ps1
+powershell -NoProfile -File <REPO_ROOT>\tools\sync-skills.ps1
 ```
 
 ### 2）换机器 / 重装，从仓库还原
 
 ```powershell
 # 先按 docs/CODEX-SETUP.md §3.2 手写 <HOME>\.codex\config.toml（含机器特定 MCP 路径，不入库）
-powershell -NoProfile -File D:\ProjRx\CodePlus\tools\install-codex-env.ps1 -Apply
-powershell -NoProfile -File D:\ProjRx\CodePlus\tools\install-skills.ps1 -Apply
+powershell -NoProfile -File <REPO_ROOT>\tools\install-codex-env.ps1 -Apply
+powershell -NoProfile -File <REPO_ROOT>\tools\install-skills.ps1 -Apply
 # 重启 Codex 生效
 ```
 
@@ -80,7 +80,8 @@ CodePlus/
 │   ├── CODEX-AGENTS-TEMPLATES.md  ← 五个子代理完整正文（脚本生成）
 │   └── CODEX-MULTIAGENT-BENEFIT.md← 多 Agent 收益分析与局限
 ├── codex/
-│   ├── AGENTS.global.md           ← 全局协调层（= ~/.codex/AGENTS.md）
+│   ├── AGENTS.global.md           ← 最小注入层（= ~/.codex/AGENTS.md，≤80 行）
+│   ├── DELEGATION.md              ← 主线程按需读的委派剧本（不注入子代理）
 │   └── agents/*.toml              ← 五个正式子代理文件（= ~/.codex/agents/*.toml）
 ├── skills/
 │   ├── project-ai-environment/    ← 通用项目 AI 环境生成器
@@ -91,6 +92,7 @@ CodePlus/
     ├── sync-skills.ps1  install-skills.ps1       ← 项目技能双向
     ├── sync-guide.py  check-consistency.py       ← 指南生成 / 规则一致性
     ├── verify-repo.ps1  check-links.py           ← 本机一致性 / 链接检查
+    ├── slice.py                                   ← 切片写域互斥 / 越界拒收 / gate 记账
     └── analysis/                                  ← 收益分析复现脚本
 ```
 
@@ -98,8 +100,8 @@ CodePlus/
 
 ```powershell
 # 若报 "not digitally signed"，在命令中加 -ExecutionPolicy Bypass
-powershell -NoProfile -ExecutionPolicy Bypass -File D:\ProjRx\CodePlus\tools\verify-repo.ps1   # 本机一致性（依赖 ~/.codex）
-python -X utf8 D:\ProjRx\CodePlus\tools\check-consistency.py           # 跨文件规则
+powershell -NoProfile -ExecutionPolicy Bypass -File <REPO_ROOT>\tools\verify-repo.ps1   # 本机一致性（依赖 ~/.codex）
+python -X utf8 <REPO_ROOT>\tools\check-consistency.py           # 跨文件规则
 ```
 
 `verify-repo.ps1` 的 8 项检查：
@@ -123,6 +125,8 @@ python -X utf8 D:\ProjRx\CodePlus\tools\check-consistency.py           # 跨文�
 - **PowerShell 脚本保存为 UTF-8 with BOM**；Python 一律 `python -X utf8`，只用标准库。
 - **生成区不要手改**：指南 §3.1、§4 表格、`docs/CODEX-AGENTS-TEMPLATES.md`、`codex/` 快照。
 - 改配置的顺序：先改 live（`~/.codex/...` 或 skill 目录）→ 跑对应 `sync-*` → 再校验。
+- **规则层有体积预算**：`AGENTS.md` ≤80 行、`DELEGATION.md` ≤90 行、每个 `agents/*.toml` ≤70 行；
+  要加规则先删等量文本——这样「精简」不会在几轮迭代后长回去。
 - 仓库不放凭据、`auth.json`、会话日志、数据库与备份产物（`.gitignore` 已覆盖）。
 
 ## ⚠️ 已知限制

@@ -5,11 +5,12 @@
 | 脚本 | 模块 | 方向 | 作用 |
 | --- | --- | --- | --- |
 | [sync-config.ps1](sync-config.ps1) | Codex 全局环境 | live → 仓库 | 写指南、镜像 `codex/`、跑一致性 |
-| [install-codex-env.ps1](install-codex-env.ps1) | Codex 全局环境 | 仓库 → live | 安装 `AGENTS.global.md`、`agents/*.toml`；写入前备份 |
+| [install-codex-env.ps1](install-codex-env.ps1) | Codex 全局环境 | 仓库 → live | 安装 `AGENTS.global.md`、`DELEGATION.md`、`agents/*.toml`；写入前备份 |
 | [sync-skills.ps1](sync-skills.ps1) | 项目技能 | live → 仓库 | 镜像仓库收录的 skill 到 `skills/`；仓库侧旧内容先备份 |
 | [install-skills.ps1](install-skills.ps1) | 项目技能 | 仓库 → live | 安装仓库收录的 skill；live 侧先备份 |
 | [sync-guide.py](sync-guide.py) | 全局环境 | live → 指南 | 把 `AGENTS.md` 嵌入指南 §3.1，同步 §0/§4.1 与版本日期，重生成模板 |
-| [check-consistency.py](check-consistency.py) | 全局环境 | 校验 | 19 条表内规则 + 4 项附加检查（TOML 占位符 / 指南纯度 / 实证表述 / 版本日期） |
+| [check-consistency.py](check-consistency.py) | 全局环境 | 校验 | 6 条表内规则 + 6 项附加检查（体积预算 / 层边界 / TOML 占位符 / 指南纯度 / 实证表述 / 版本日期） |
+| [slice.py](slice.py) | 任务执行 | 校验 + 记账 | 切片写域互斥（`claim`）、越界拒收（`verify`）、gate 绿才算完成（`done`）；`selftest` 自检 |
 | [verify-repo.ps1](verify-repo.ps1) | 两模块 | 校验 | 本机一致性（依赖 `~/.codex`）：8 项，见仓库 README |
 | [check-links.py](check-links.py) | 仓库 | 校验 | 文档相对链接（不检查 skill 资产模板） |
 | [analysis/](analysis/README.md) | 证据分析 | 只读 | 产出 [收益分析](../docs/CODEX-MULTIAGENT-BENEFIT.md) 全部数字的会话脚本 |
@@ -18,17 +19,17 @@
 
 ```powershell
 # 全局环境：改完 live 配置后（先预览）
-powershell -NoProfile -File D:\ProjRx\CodePlus\tools\sync-config.ps1 -Preview
-powershell -NoProfile -File D:\ProjRx\CodePlus\tools\sync-config.ps1
+powershell -NoProfile -File <REPO_ROOT>\tools\sync-config.ps1 -Preview
+powershell -NoProfile -File <REPO_ROOT>\tools\sync-config.ps1
 
 # 项目技能：改完 ~/.codex/skills 后
-powershell -NoProfile -File D:\ProjRx\CodePlus\tools\sync-skills.ps1
+powershell -NoProfile -File <REPO_ROOT>\tools\sync-skills.ps1
 
 # 重建机器（先预览，再 -Apply）
-powershell -NoProfile -File D:\ProjRx\CodePlus\tools\install-codex-env.ps1
-powershell -NoProfile -File D:\ProjRx\CodePlus\tools\install-codex-env.ps1 -Apply
-powershell -NoProfile -File D:\ProjRx\CodePlus\tools\install-skills.ps1
-powershell -NoProfile -File D:\ProjRx\CodePlus\tools\install-skills.ps1 -Apply
+powershell -NoProfile -File <REPO_ROOT>\tools\install-codex-env.ps1
+powershell -NoProfile -File <REPO_ROOT>\tools\install-codex-env.ps1 -Apply
+powershell -NoProfile -File <REPO_ROOT>\tools\install-skills.ps1
+powershell -NoProfile -File <REPO_ROOT>\tools\install-skills.ps1 -Apply
 ```
 
 ## 约定
@@ -36,9 +37,13 @@ powershell -NoProfile -File D:\ProjRx\CodePlus\tools\install-skills.ps1 -Apply
 - **PowerShell 脚本必须是 UTF-8 with BOM**：本机 PowerShell 5.1 会把无 BOM 的中文按 GBK 误读，
   表现为「字符串缺少终止符」这类诡异解析错误。
 - **用 `powershell`（5.1）跑，不要用 `pwsh`**。若报 `not digitally signed`，加 `-ExecutionPolicy Bypass`
-  （仓库脚本未签名；本机曾出现仅 CodePlus 目录下的 .ps1 被该策略拦下，加 Bypass 即通过）。
+  （仓库脚本未签名；本机曾出现仅本仓库目录下的 .ps1 被该策略拦下，加 Bypass 即通过）。
 - Python 脚本用 `python -X utf8`；只用标准库。
 - 退出码：`0` 成功；`1` 校验/一致性失败；`2` 用法或契约错误（部分脚本）。
+- **层边界由脚本检查**（check_layer_boundary）：~/.codex 的 AGENTS/DELEGATION/agents 不得出现
+  外部仓库名、盘符路径或项目侧布局（Tasks/、docs/ai、	ools/ai、slice.py）；项目内容只写项目自己的 AGENTS.md。
+- **规则层有体积预算**（`check-consistency.py` 的 `BUDGET_LINES`：`AGENTS.md` ≤80 行、`DELEGATION.md` ≤90 行、
+  `agents/*.toml` ≤70 行）。要加规则先删等量文本——预算就是"精简不可逆"的机制。
 - 全局环境的 `sync-config.ps1` 支持 `-SkipCodex`（只改文档时更快）；技能同步不做模块交集。
 
 ## 已知风险（使用前读）
